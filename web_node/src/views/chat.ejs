@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/nav.css">
+</head>
+
+<body>
+
+  <%- include('partials/nav', { title, user, active: 'chat' }) %>
+
+  <div class="chat-wrap" style="display:flex; gap:16px; padding:16px;">
+
+    <!-- 채팅방 목록 -->
+    <aside style="width:220px; border:1px solid #ddd; padding:12px;">
+      <h2 style="margin-top:0;">채팅방</h2>
+      <ul style="list-style:none; padding-left:0;">
+        <li>채팅1</li>
+        <li>채팅2</li>
+      </ul>
+    </aside>
+
+    <!-- 메시지 영역 -->
+    <main style="
+      flex:1; 
+      border:1px solid #ddd; 
+      padding:12px; 
+      display:flex; 
+      flex-direction:column; 
+      height:500px;
+    ">
+
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="margin:0;">채팅 1</h2>
+        <span><%= user && user.user_name ? user.user_name : "Guest" %></span>
+      </header>
+
+      <!-- 메시지 출력 -->
+      <section style="
+        flex:1; 
+        overflow-y:auto; 
+        border:1px solid #eee; 
+        padding:8px; 
+        margin-bottom:8px;
+      "></section>
+
+      <!-- 메시지 입력 -->
+      <form method="POST" action="/chat/send" style="display:flex; gap:8px;">
+        <input
+          type="text"
+          name="message"
+          placeholder="메시지를 입력하세요..."
+          required
+          style="flex:1; padding:6px;"
+        />
+        <button type="submit">전송</button>
+      </form>
+
+    </main>
+  </div>
+</body>
+</html>

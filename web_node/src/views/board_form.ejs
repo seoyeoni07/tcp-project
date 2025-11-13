@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title><%= mode === 'edit' ? '글 수정' : '글 쓰기' %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/board.css">
+</head>
+<body>
+  <%- include('partials/nav', { title, user }) %>
+
+  <div class="board-wrap">
+    <h2>글 <%= mode === 'edit' ? '수정' : '쓰기' %></h2>
+
+    <div class="board-meta">
+      <% if (post && post.created_at_fmt) { %>
+        <span>작성일: <%= post.created_at_fmt %></span>
+      <% } %>
+      <% if (post && post.updated_at_fmt) { %>
+        <span>수정일: <%= post.updated_at_fmt %></span>
+      <% } %>
+    </div>
+
+    <form method="post" action="<%= mode === 'edit' && post ? ('/board/' + post.post_id + '/edit') : '/board/new' %>">
+      <!-- 제목 -->
+      <input
+        class="input-text"
+        type="text"
+        name="title"
+        value="<%= post ? post.title : '' %>"
+        placeholder="제목"
+        required
+      />
+
+      <!-- 내용 -->
+<textarea class="input-textarea" name="content" required><%= post ? post.content : '' %></textarea>
+
+      <!-- 공지 체크 (관리자만) -->
+      <% const isAdmin = user && user.role === 'admin'; %>
+      <% if (isAdmin) { %>
+        <div class="form-row">
+          <label>
+            <input
+              type="checkbox"
+              name="is_notice"
+              value="1"
+              <%= post && post.is_notice ? 'checked' : '' %>
+            />
+            공지글로 등록
+          </label>
+        </div>
+      <% } %>
+
+      <!-- 버튼 -->
+      <button type="submit" class="btn btn-primary">
+        <%= mode === 'edit' ? '수정' : '등록' %>
+      </button>
+      <a href="/board" class="btn btn-light">목록</a>
+    </form>
+  </div>
+</body>
+</html>

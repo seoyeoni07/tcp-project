@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시판</title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+
+<body>
+
+  <%- include('partials/nav', { title, user, active: 'board' }) %>
+
+  <div class="board-wrap">
+    <div class="board-header">
+      <h1 class="board-title">게시판</h1>
+
+      <!-- 검색 -->
+      <form class="board-search" method="get" action="/board">
+        <input type="text" name="q" placeholder="제목 검색" value="<%= q %>" />
+        <button type="submit" class="btn">검색</button>
+        <% if (q) { %>
+          <a href="/board" class="btn btn-light">전체</a>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- 게시글 -->
+    <table class="board-table">
+      <colgroup>
+        <col style="width:90px" />
+        <col />
+        <col style="width:160px" />
+        <col style="width:140px" />
+        <col style="width:90px" />
+      </colgroup>
+
+      <thead>
+        <tr>
+          <th class="col-no">번호</th>
+          <th class="col-title">제목</th>
+          <th class="col-author">작성자</th>
+          <th class="col-date">작성일</th>
+          <th class="col-views">조회수</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% const hasNotices = Array.isArray(notices) && notices.length > 0; %>
+        <% const hasPosts   = Array.isArray(posts)   && posts.length   > 0; %>
+
+        <!-- 공지 목록 -->
+        <% if (hasNotices) { %>
+          <% notices.forEach(post => { %>
+            <tr class="row-notice">
+              <td class="col-no">공지</td>
+              <td class="col-title">
+                <span class="badge-notice">공지</span>
+                <a class="post-link" href="/board/<%= post.post_id %>">
+                  <%= post.title %>
+                </a>
+              </td>
+              <td class="col-author"><%= post.author_name %></td>
+              <td class="col-date"><%= post.created_date %></td>
+              <td class="col-views"><%= post.views %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+
+        <!-- 글 목록 -->
+        <% if (hasPosts) { %>
+          <% posts.forEach(post => { %>
+            <tr>
+              <td class="col-no"><%= post.post_id %></td>
+              <td class="col-title">
+                <a class="post-link" href="/board/<%= post.post_id %>">
+                  <%= post.title %>
+                </a>
+              </td>
+              <td class="col-author"><%= post.author_name %></td>
+              <td class="col-date"><%= post.created_date %></td>
+              <td class="col-views"><%= post.views %></td>
+            </tr>
+          <% }); %>
+        <% } else if (!hasNotices) { %>
+          <tr>
+            <td class="empty-row" colspan="5">게시글이 없습니다.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+    <!-- 하단 -->
+    <div class="board-foot">
+      <div class="pagination">
+        <% if (totalPages > 1) { %>
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <% 
+              const qs = q 
+                ? `?q=${encodeURIComponent(q)}&page=${i}` 
+                : `?page=${i}`;
+            %>
+
+            <% if (i === currentPage) { %>
+              <strong><%= i %></strong>
+            <% } else { %>
+              <a href="/board<%= qs %>"><%= i %></a>
+            <% } %>
+          <% } %>
+        <% } %>
+      </div>
+
+      <!-- 글쓰기 버튼 -->
+      <a href="/board/new" class="btn btn-primary btn-write">글 쓰기</a>
+    </div>
+  </div>
+</body>
+</html>

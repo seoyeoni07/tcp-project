@@ -1,0 +1,9 @@
+<%- include('../partials/nav') %>
+
+<h1>회의실 예약</h1>
+
+<form method="post" action="/meeting/reserve/<%= room_id %>">
+  <input type="datetime-local" name="start" required>
+  <input type="datetime-local" name="end" required>
+  <button type="submit">예약하기</button>
+</form>

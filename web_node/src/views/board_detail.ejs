@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= post.title %> - 게시판</title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+
+<body>
+
+  <%- include('partials/nav', { title, user }) %>
+
+  <div class="board-wrap">
+    <h2 class="post-title">
+      <% if (post.is_notice) { %>[공지]<% } %>
+      <%= post.title %>
+    </h2>
+
+    <div class="board-meta">
+      <span>작성자: <%= post.author_name %></span>
+      <span>작성일: <%= post.created_at_fmt %></span>
+
+      <% if (post.updated_at_fmt) { %>
+        <span>수정일: <%= post.updated_at_fmt %></span>
+      <% } %>
+
+      <span>조회수: <%= post.views %></span>
+    </div>
+
+    <!-- 내용 -->
+    <div class="board-content">
+      <div class="board-content-text">
+        <%= (post.content || '').trimStart() %>
+      </div>
+    </div>
+
+    <!-- 버튼 -->
+    <div class="board-actions">
+      <a href="/board" class="btn btn-light">목록</a>
+
+      <% const isOwner = user && (user.user_id === post.user_id); %>
+      <% const isAdmin = user && (user.role === 'admin'); %>
+
+      <% if (isOwner || isAdmin) { %>
+        <a href="/board/<%= post.post_id %>/edit" class="btn btn-primary">수정</a>
+
+        <form
+          method="post"
+          action="/board/<%= post.post_id %>/delete"
+          style="display:inline;"
+          onsubmit="return confirm('정말 삭제하시겠습니까?');"
+        >
+          <button type="submit" class="btn btn-danger">삭제</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
