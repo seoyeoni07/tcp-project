@@ -149,3 +149,38 @@ a.delete:hover {
     background-color: #5a6268;
 }
 
+/* 채팅*/
+.chat-message {
+    display: flex;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* 1. 내가 보낸 메시지 오른쪽 정렬 */
+.my-message {
+    justify-content: flex-end;
+}
+
+/* 다른 사람이 보낸 메시지 왼쪽 정렬 */
+.other-message {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 18px;
+    line-height: 1.4;
+}
+
+/* 내 메시지 */
+.my-message .message-bubble {
+    background-color: #fee500;
+    color: #3c1e1e;
+}
+
+/* 상대방 메시지 */
+.other-message .message-bubble {
+    background-color: #80bdff;
+    color: #000000;
+}

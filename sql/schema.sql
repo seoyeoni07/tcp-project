@@ -105,3 +105,13 @@ CREATE TABLE IF NOT EXISTS meeting_reservations (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+--메세지 (대화내용 저장)
+CREATE TABLE IF NOT EXISTS messages (
+    message_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id    INT UNSIGNED NOT NULL,
+    content    TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (message_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) 
+) ENGINE=InnoDB;

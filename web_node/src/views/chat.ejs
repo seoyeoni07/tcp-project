@@ -39,7 +39,7 @@
       </header>
 
       <!-- 메시지 출력 -->
-      <section style="
+      <section id="messages" style="
         flex:1; 
         overflow-y:auto; 
         border:1px solid #eee; 
@@ -48,10 +48,10 @@
       "></section>
 
       <!-- 메시지 입력 -->
-      <form method="POST" action="/chat/send" style="display:flex; gap:8px;">
+      <form id="message-form" style="display:flex; gap:8px;">
         <input
           type="text"
-          name="message"
+          id="message-input"
           placeholder="메시지를 입력하세요..."
           required
           style="flex:1; padding:6px;"
@@ -61,5 +61,82 @@
 
     </main>
   </div>
+  <script src="/socket.io/socket.io.js"></script> 
+
+    <script>
+        const form = document.getElementById('message-form');
+        const input = document.getElementById('message-input');
+        const messagesSection = document.getElementById('messages');
+
+        console.log("메시지 섹션 참조:", messagesSection);
+        
+        const currentUserId = "<%= user && user.user_id ? user.user_id : null %>";
+
+        // 소켓 연결
+        const socket = io(); 
+
+        function appendMessage(data, isPast = false) {
+            const container = document.createElement('div');
+            container.classList.add('chat-message');
+            
+            const item = document.createElement('div');
+            item.classList.add('message-bubble');
+
+            const isMyMessage = (data.user_id == currentUserId);
+            
+            if (isMyMessage) {
+              container.classList.add('my-message');
+            } else {
+              container.classList.add('other-message');
+            }
+            const sender = isMyMessage ? '나' : data.user_name;
+            const msgText = data.message || "메시지 없음";
+            const timestamp = data.timestamp;
+
+            item.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 4px;">${sender}</div>
+            <div>${msgText}</div>
+            <div style="font-size: 10px; opacity: 0.6; text-align: right; margin-top: 4px;">${timestamp}</div>
+            `;
+
+            container.appendChild(item);
+            messagesSection.appendChild(container);
+    }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // 페이지 새로고침 방지
+            const message = input.value.trim();
+            
+            if (message) {
+                socket.emit('chat message', message);
+                input.value = '';
+            }
+        });
+
+        socket.on('past message', (data) => {
+            appendMessage(data, true);
+        });
+        
+        socket.on('chat message', (data) => {
+            appendMessage(data, false);
+            if (messagesSection) {
+              messagesSection.scrollTop = messagesSection.scrollHeight;
+              } else {
+        console.error("messagesSection을 찾을 수 없습니다!");
+    }
+        });
+        
+        socket.on('system message', (msg) => {
+            const item = document.createElement('div');
+            item.textContent = `[시스템] ${msg}`;
+            item.style.color = 'gray';
+            messagesSection.appendChild(item);
+
+            if (msg.includes('로딩 완료')) {
+                 messagesSection.scrollTop = messagesSection.scrollHeight;
+            }
+        });
+
+    </script>
 </body>
 </html>
