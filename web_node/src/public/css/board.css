@@ -491,10 +491,21 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #4a8fff;  
+  font-weight: 600;
 }
 
 .cal-more {
   margin-top: 2px;
   font-size: 11px;
   color: var(--accent);
+}
+
+.board-table .col-title {
+  text-align: left !important;
+}
+
+.board-table th:not(.col-title),
+.board-table td:not(.col-title) {
+  text-align: center;
 }

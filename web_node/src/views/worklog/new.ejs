@@ -3,9 +3,19 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>
-    <%= title %>
-  </title>
+  <title><%= title %></title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+  <link rel="stylesheet" href="/css/worklog.css" />
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+
     <style>
       .form-row {
         display: flex;
@@ -97,7 +107,7 @@
 
         <div class="text-right mt-4">
           <button type="submit" class="btn btn-primary">저장</button>
-          <a href="/worklog" class="btn btn-secondary">목록으로</a>
+          <a href="/worklog" class="btn">목록으로</a>
         </div>
       </form>
     </div>

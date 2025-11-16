@@ -165,3 +165,145 @@ a.delete:hover {
   background: #f0f4ff;
   font-weight: bold;
 }
+
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  border: 1px solid #111827;
+  background-color: #111827;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-main:hover {
+  opacity: 0.9;
+}
+
+.btn-main.btn-outline {
+  background-color: #fff;
+  color: #111827;
+}
+
+.meeting-wrap {
+  max-width: 1080px;   
+  margin: 36px auto;    
+  padding: 0 12px;      
+}
+
+.meeting-wrap {
+  max-width: 1080px;
+  margin: 36px auto 64px;
+  padding: 0 12px;
+}
+
+.meeting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  margin-bottom: 16px;
+}
+
+.meeting-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.meeting-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.meeting-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meeting-current {
+  font-weight: 500;
+}
+
+.btn-icon {
+  padding: 4px 8px;
+}
+
+.btn-outline {
+  padding: 6px 12px;
+}
+
+.meeting-event {
+  background-color: #3b82f621; 
+  color: #1e40af;             
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  line-height: 1.3;
+}
+
+.board-table th,
+.board-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#reservation-table th,
+#reservation-table td {
+  text-align: center;
+}
+
+#reservation-table .col-title,
+#reservation-table tbody td:first-child {
+  text-align: center !important;
+}
+
+.reserve-wrap {
+  max-width: 720px;       
+  margin: 48px auto 64px; 
+  padding: 0 12px;
+}
+
+.reserve-wrap .form-wrap {
+  max-width: 720px;
+  margin: 24px auto 0;
+}
+
+#board-table .col-title,
+#board-table td.col-title {
+  text-align: left !important;
+}
+
+#board-table th,
+#board-table td:not(.col-title) {
+  text-align: center;
+}
+
+.chat-wrap {
+  max-width: 1200px;   
+  margin: 0 auto;     
+  padding: 0 16px;     
+  box-sizing: border-box;
+}
+
+.calendar-table th:first-child,
+.calendar-table td:first-child {
+  color: red !important;
+}
+
+.calendar-table th:last-child,
+.calendar-table td:last-child {
+  color: #1e40af !important;
+}
