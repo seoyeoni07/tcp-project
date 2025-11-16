@@ -1,51 +1,255 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <meta charset="UTF-8" />
-  <title><%= log.title %> - 업무일지</title>
+  <meta charset="UTF-8">
+  <title>
+    <%= title %> - <%= log.title %>
+  </title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #343a40;
+      line-height: 1.6;
+    }
 
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/nav.css" />
-  <link rel="stylesheet" href="/css/board.css" />
+    .container.mt-5 {
+      max-width: 900px;
+      margin-top: 3rem !important;
+      margin-bottom: 3rem !important;
+      padding: 0 15px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #212529;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 0.5rem;
+    }
+
+    .detail-card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      margin-bottom: 25px;
+    }
+
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .info-item {
+      flex: 1;
+      min-width: 200px;
+      margin-right: 20px;
+      margin-bottom: 10px;
+    }
+
+    .info-item:last-child {
+      margin-right: 0;
+    }
+
+    .info-item label {
+      font-weight: 600;
+      color: #6c757d;
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.95em;
+    }
+
+    .info-item span {
+      font-size: 1.15em;
+      color: #343a40;
+    }
+
+    .info-item span.highlight {
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    hr {
+      border-top: 1px solid #e9ecef;
+      margin: 25px 0;
+    }
+
+    .content-label {
+      font-weight: 600;
+      color: #6c757d;
+      margin-bottom: 10px;
+      display: block;
+      font-size: 1.05em;
+    }
+
+    .content-section {
+      margin-top: 10px;
+      padding: 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      background-color: #f8f9fa;
+      white-space: pre-wrap;
+      min-height: 100px;
+      overflow-x: auto;
+    }
+
+    .footer-meta {
+      text-align: right;
+      color: #868e96;
+      font-size: 0.85em;
+      margin-top: 20px;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+      color: #fff;
+    }
+
+    .btn-warning {
+      background-color: #ffc107;
+      border-color: #ffc107;
+      color: #212529;
+    }
+
+    .btn-warning:hover {
+      background-color: #e0a800;
+      border-color: #da9e00;
+      color: #212529;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+      color: #fff;
+    }
+
+    @media (max-width:768px) {
+      .info-row {
+        flex-direction: column;
+      }
+
+      .info-item {
+        margin-right: 0;
+        margin-bottom: 15px;
+        min-width: unset;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .action-buttons .d-flex {
+        display: flex !important;
+        margin-top: 15px;
+        justify-content: space-around;
+      }
+
+      .action-buttons .d-flex .btn,
+      .action-buttons .d-flex form {
+        flex: 1;
+        margin: 0 5px;
+      }
+
+      .action-buttons .d-flex .btn.mr-2 {
+        margin-right: 5px !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
-
-  <%- include('../partials/nav', { title, user, active: 'worklog' }) %>
-
-  <div class="board-wrap">
-    <h2 class="post-title"><%= log.title %></h2>
-
-    <div class="board-meta">
-      <span>작성자: <%= log.author_name %></span>
-      <span>작성일: <%= log.created_at_fmt %></span>
-
-      <% if (log.updated_at_fmt) { %>
-        <span>수정일: <%= log.updated_at_fmt %></span>
-      <% } %>
-    </div>
-
-    <div class="board-content">
-      <div class="board-content-text">
-        <%= (log.content || '').trimStart() %>
+  <div class="container mt-5">
+    <h1>
+      <%= log.title %>
+    </h1>
+    <div class="detail-card">
+      <div class="info-row">
+        <div class="info-item"><label>업무일</label><span>
+            <% let displayDate='N/A' ;if (log.work_date instanceof Date) {const date=log.work_date;const
+              userTimezoneOffset=date.getTimezoneOffset() * 60000;const kstDate=new Date(date.getTime() -
+              userTimezoneOffset);displayDate=kstDate.toISOString().split('T')[0];} else if (typeof
+              log.work_date==='string' ) {displayDate=log.work_date.substring(0, 10);} %>
+              <%= displayDate %>
+          </span></div>
+        <div class="info-item"><label>출근 / 퇴근</label><span>
+            <%= log.start_time %> ~ <%= log.end_time %>
+          </span></div>
+        <div class="info-item"><label>총 근무 시간</label><span class="highlight">
+            <% const workTime=log.work_time; if (workTime && typeof workTime==='string' && !workTime.includes('NaN')) {
+              %>
+              <%= workTime %>
+                <% } else if (log.start_time && log.end_time) { %>계산 오류<% } else { %>퇴근 시간 미입력<% } %>
+          </span></div>
+      </div>
+      <div class="info-row">
+        <div class="info-item"><label>작성자</label><span>
+            <%= log.author_name %>
+          </span></div>
+        <div class="info-item"><label>부서명</label><span>
+            <%= log.department || '미지정' %>
+          </span></div>
+        <div class="info-item"><label>직위</label><span>
+            <%= log.position || '미지정' %>
+          </span></div>
+      </div>
+      <hr>
+      <div><label class="content-label">진행 업무 / 특이사항</label>
+        <div class="content-section">
+          <%= log.content %>
+        </div>
+      </div>
+      <div class="mt-4"><label class="content-label">익일 업무 계획</label>
+        <div class="content-section">
+          <%= log.next_plan || '계획 없음' %>
+        </div>
       </div>
     </div>
-
-    <div class="board-actions">
-      <a href="/worklog" class="btn btn-light">목록</a>
-
+    <div class="footer-meta">등록일: <%= log.created_at_fmt %><br>수정일: <%= log.updated_at_fmt %>
+    </div>
+    <div class="action-buttons"><a href="/worklog" class="btn btn-secondary">목록으로 돌아가기</a>
       <% if (canEdit) { %>
-        <a href="/worklog/<%= log.log_id %>/edit" class="btn btn-primary">수정</a>
-
-        <form
-          method="post"
-          action="/worklog/<%= log.log_id %>/delete"
-          style="display:inline;"
-          onsubmit="return confirm('정말 삭제하시겠습니까?');"
-        >
-          <button type="submit" class="btn btn-danger">삭제</button>
-        </form>
-      <% } %>
+        <div class="d-flex align-items-center"><a href="/worklog/<%= log.log_id %>/edit"
+            class="btn btn-warning mr-2">수정</a>
+          <form method="POST" action="/worklog/<%= log.log_id %>/delete" class="d-inline"
+            onsubmit="return confirm('정말로 이 업무일지를 삭제하시겠습니까?');"><button type="submit" class="btn btn-danger">삭제</button>
+          </form>
+        </div>
+        <% } %>
     </div>
   </div>
 </body>
+
 </html>

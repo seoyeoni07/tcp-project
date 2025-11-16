@@ -62,19 +62,27 @@ CREATE TABLE IF NOT EXISTS comments (
 
 -- 업무일지(worklogs)
 -- 업무일지 저장
+-- 쿼리 업데이트됨 drop후 추가
 CREATE TABLE IF NOT EXISTS worklogs (
-  log_id     INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  user_id    INT UNSIGNED NOT NULL,
-  title      VARCHAR(200) NOT NULL,
-  content    TEXT         NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-                 ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (log_id),
-  KEY worklogs_user (user_id),
-  CONSTRAINT worklogs_ibfk_1
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-    ON DELETE CASCADE
+    log_id      INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id     INT UNSIGNED NOT NULL,
+    work_date   DATE NOT NULL,       
+    start_time  TIME,                          
+    end_time    TIME,                          
+    department  VARCHAR(50),                    
+    position    VARCHAR(50),                  
+    next_plan   TEXT,                           
+    title       VARCHAR(200) NOT NULL,
+    content     TEXT           NOT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (log_id),
+    KEY worklogs_user (user_id),
+    KEY worklogs_date (work_date), 
+    CONSTRAINT worklogs_ibfk_1
+      FOREIGN KEY (user_id) REFERENCES users(user_id)
+      ON DELETE CASCADE
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_general_ci;

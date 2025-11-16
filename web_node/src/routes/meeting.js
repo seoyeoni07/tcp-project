@@ -20,7 +20,7 @@ router.get("/", requireLogin, async (req, res, next) => {
   const user = req.session.user;
 
   const today = new Date();
-  let year  = parseInt(req.query.year  || today.getFullYear(), 10);
+  let year = parseInt(req.query.year || today.getFullYear(), 10);
   let month = parseInt(req.query.month || (today.getMonth() + 1), 10);
 
   if (req.query.prev) {
@@ -40,7 +40,7 @@ router.get("/", requireLogin, async (req, res, next) => {
   const monthStr = String(month).padStart(2, "0");
   const start = `${year}-${monthStr}-01`;
   const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear  = month === 12 ? year + 1 : year;
+  const nextYear = month === 12 ? year + 1 : year;
   const nextMonthStr = String(nextMonth).padStart(2, "0");
   const end = `${nextYear}-${nextMonthStr}-01`;
 
@@ -116,30 +116,12 @@ router.get("/my", requireLogin, async (req, res, next) => {
 });
 
 // 예약 화면
-router.get("/reserve/:room_id", requireLogin, async (req, res, next) => {
+router.get("/reserve", requireLogin, async (req, res, next) => {
   try {
     const user = req.session.user;
-    const { room_id } = req.params;
-
-    const [[room]] = await db.query(
-      `
-      SELECT room_id, room_name, capacity
-      FROM meeting_rooms
-      WHERE room_id = ?
-      `,
-      [room_id]
-    );
-
-    if (!room) {
-      return res.status(404).send("존재하지 않는 회의실입니다.");
-    }
-
+    const [rooms] = await db.query(`SELECT room_id,room_name,capacity FROM meeting_rooms ORDER BY room_name ASC`);
     res.render("meeting/reserve", {
-      title: "회의실 예약",
-      active: "meeting",
-      user,
-      room,
-      error: null,
+      title: "회의실 예약", active: "meeting", user, rooms, error: null
     });
   } catch (err) {
     next(err);
@@ -147,27 +129,23 @@ router.get("/reserve/:room_id", requireLogin, async (req, res, next) => {
 });
 
 // 예약 처리
-router.post("/reserve/:room_id", requireLogin, async (req, res, next) => {
+router.post("/reserve", requireLogin, async (req, res, next) => {
   try {
     const user = req.session.user;
-    const { room_id } = req.params;
-    const { start, end } = req.body;
-
-    if (!start || !end) {
-      const [[room]] = await db.query(
-        `SELECT room_id, room_name, capacity FROM meeting_rooms WHERE room_id = ?`,
-        [room_id]
-      );
+    const { room_id, start, end } = req.body;
+    if (!room_id || !start || !end) {
+      const [rooms] = await db.query(`SELECT room_id, room_name, capacity FROM meeting_rooms ORDER BY room_name ASC`);
 
       return res.status(400).render("meeting/reserve", {
         title: "회의실 예약",
         active: "meeting",
         user,
-        room,
-        error: "시작/종료 시간을 모두 입력하세요.",
+        rooms,
+        error: "회의실, 시작 시간, 종료 시간을 모두 선택하세요.",
       });
     }
 
+    const parsedRoomId = parseInt(room_id, 10);
     const startTime = parseLocalDateTime(start);
     const endTime = parseLocalDateTime(end);
 
@@ -184,5 +162,140 @@ router.post("/reserve/:room_id", requireLogin, async (req, res, next) => {
     next(err);
   }
 });
+
+//예약 취소
+router.get("/cancel/:reservation_id", requireLogin, async (req, res, next) => {
+  try {
+    const user = req.session.user;
+    const { reservation_id } = req.params;
+
+    const [[reservation]] = await db.query(
+      `SELECT user_id FROM meeting_reservations WHERE reservation_id = ?`,
+      [reservation_id]
+    );
+
+    if (!reservation) {
+      return res.status(404).send("존재하지 않는 예약입니다.");
+    }
+
+    if (reservation.user_id !== user.user_id) {
+      return res.status(403).send("본인의 예약만 취소할 수 있습니다.");
+    }
+
+    await db.query(
+      `DELETE FROM meeting_reservations WHERE reservation_id = ?`,
+      [reservation_id]
+    );
+
+    res.redirect("/meeting/my");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 수정
+router.get("/edit/:reservation_id", requireLogin, async (req, res, next) => {
+    try {
+        const user = req.session.user;
+        const { reservation_id } = req.params;
+
+        const [rooms] = await db.query(
+            `SELECT room_id, room_name, capacity FROM meeting_rooms ORDER BY room_name ASC`
+        );
+
+        const [[reservation]] = await db.query(
+            `
+            SELECT 
+                reservation_id, room_id, user_id, 
+                DATE_FORMAT(start_time, '%Y-%m-%dT%H:%i') AS start_time_local,
+                DATE_FORMAT(end_time, '%Y-%m-%dT%H:%i') AS end_time_local
+            FROM meeting_reservations 
+            WHERE reservation_id = ?
+            `,
+            [reservation_id]
+        );
+
+        if (!reservation) {
+            return res.status(404).send("존재하지 않는 예약입니다.");
+        }
+
+        if (reservation.user_id !== user.user_id) {
+            return res.status(403).send("본인의 예약만 수정할 수 있습니다.");
+        }
+
+        res.render("meeting/edit", {
+            title: "예약 수정", 
+            active: "meeting", 
+            user, 
+            rooms,
+            reservation,
+            error: null,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+// 수정처리
+router.post("/edit/:reservation_id", requireLogin, async (req, res, next) => {
+    try {
+        const user = req.session.user;
+        const { reservation_id } = req.params;
+        const { room_id, start, end } = req.body;
+
+        if (!room_id || !start || !end) {
+            const [rooms] = await db.query(`SELECT room_id, room_name, capacity FROM meeting_rooms ORDER BY room_name ASC`);
+            
+            const [[reservation]] = await db.query(
+                `
+                SELECT 
+                    reservation_id, room_id, user_id, 
+                    DATE_FORMAT(start_time, '%Y-%m-%dT%H:%i') AS start_time_local,
+                    DATE_FORMAT(end_time, '%Y-%m-%dT%H:%i') AS end_time_local
+                FROM meeting_reservations 
+                WHERE reservation_id = ?
+                `,
+                [reservation_id]
+            );
+
+            return res.status(400).render("meeting/edit", {
+                title: "예약 수정",
+                active: "meeting",
+                user,
+                rooms,
+                reservation,
+                error: "회의실, 시작 시간, 종료 시간을 모두 선택하세요.",
+            });
+        }
+
+        const startTime = parseLocalDateTime(start);
+        const endTime = parseLocalDateTime(end);
+
+        const [[originalReservation]] = await db.query(
+            `SELECT user_id FROM meeting_reservations WHERE reservation_id = ?`,
+            [reservation_id]
+        );
+
+        if (!originalReservation || originalReservation.user_id !== user.user_id) {
+            return res.status(403).send("권한이 없습니다.");
+        }
+
+        await db.query(
+            `
+            UPDATE meeting_reservations 
+            SET room_id = ?, start_time = ?, end_time = ? 
+            WHERE reservation_id = ?
+            `,
+            [room_id, startTime, endTime, reservation_id]
+        );
+
+        res.redirect("/meeting/my");
+
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 export default router;

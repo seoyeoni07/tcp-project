@@ -1,63 +1,51 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
-  <title><%= title %></title>
-
+  <title>
+    <%= title %>
+  </title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <link rel="stylesheet" href="/css/board.css" />
 </head>
-<body>
 
-  <%- include('partials/nav', { title, user, active: 'meeting' }) %>
-
-  <div class="board-wrap">
-    <div class="board-header">
-      <h1 class="board-title">
-        회의실 예약 – <%= room.room_name %>
-      </h1>
+<body><%- include('../partials/nav', { title, user, active: 'meeting' }) %>
+    <div class="board-wrap">
+      <div class="board-header">
+        <h1 class="board-title">회의실 예약</h1>
+      </div>
+      <div class="form-wrap">
+        <% if (error) { %>
+          <div class="error-message">
+            <%= error %>
+          </div>
+          <% } %>
+            <form method="post" action="/meeting/reserve">
+              <div class="form-row">
+                <label for="room_id">회의실</label>
+                <select id="room_id" name="room_id" class="input-text" required>
+                  <% if (rooms && rooms.length> 0) { %>
+                    <% rooms.forEach(r=> { %>
+                      <option value="<%= r.room_id %>">
+                        <%= r.room_name %> (정원 <%= r.capacity %>명)
+                      </option>
+                      <% }); %>
+                        <% } else { %>
+                          <option value="" disabled selected>예약 가능한 회의실이 없습니다</option>
+                          <% } %>
+                </select>
+              </div>
+              <div class="form-row"><label for="start">시작 시간</label><input id="start" name="start" type="datetime-local"
+                  class="input-text" required /></div>
+              <div class="form-row"><label for="end">종료 시간</label><input id="end" name="end" type="datetime-local"
+                  class="input-text" required /></div>
+              <div class="form-actions"><a href="/meeting" class="btn">목록으로</a><button type="submit"
+                  class="btn btn-primary">예약하기</button></div>
+            </form>
+      </div>
     </div>
-
-    <div class="form-wrap">
-      <% if (error) { %>
-        <div class="error-message"><%= error %></div>
-      <% } %>
-
-      <form method="post" action="/meeting/reserve/<%= room.room_id %>">
-        <div class="form-row">
-          <label>회의실</label>
-          <div><%= room.room_name %> (정원 <%= room.capacity %>명)</div>
-        </div>
-
-        <div class="form-row">
-          <label for="start">시작 시간</label>
-          <input
-            id="start"
-            name="start"
-            type="datetime-local"
-            class="input-text"
-            required
-          />
-        </div>
-
-        <div class="form-row">
-          <label for="end">종료 시간</label>
-          <input
-            id="end"
-            name="end"
-            type="datetime-local"
-            class="input-text"
-            required
-          />
-        </div>
-
-        <div class="form-actions">
-          <a href="/meeting" class="btn">목록으로</a>
-          <button type="submit" class="btn btn-primary">예약하기</button>
-        </div>
-      </form>
-    </div>
-  </div>
 </body>
+
 </html>
