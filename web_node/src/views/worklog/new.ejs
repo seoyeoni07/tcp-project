@@ -1,9 +1,49 @@
-<%- include('../partials/nav') %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>업무일지 작성</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/board.css">
+</head>
+<body>
+  
+  <%- include('../partials/nav', { title, user, active: 'worklog' }) %>
 
-<h1>업무일지 작성</h1>
+  <div class="board-wrap">
+    <h2>업무일지 작성</h2>
 
-<form method="post" action="/worklog/new">
-  <input type="text" name="title" placeholder="제목" required>
-  <textarea name="content" placeholder="내용을 입력하세요" required></textarea>
-  <button type="submit">작성하기</button>
-</form>
+    <form class="form-wrap" method="post" action="/worklog/new">
+      <div class="form-row">
+        <label for="title">제목</label>
+        <input
+          class="input-text"
+          type="text"
+          id="title"
+          name="title"
+          placeholder="업무일지 제목을 입력하세요."
+          required
+        />
+      </div>
+
+      <div class="form-row">
+        <label for="content">내용</label>
+        <textarea
+          class="input-textarea"
+          id="content"
+          name="content"
+          rows="12"
+          placeholder="오늘 진행한 업무 내용을 기록하세요."
+          required
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        <a href="/worklog" class="btn">목록으로</a>
+        <button type="submit" class="btn btn-primary">작성하기</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

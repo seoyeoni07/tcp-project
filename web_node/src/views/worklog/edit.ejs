@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>업무일지 수정</title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+<body>
+  <%- include('../partials/nav', { title, user, active: 'worklog' }) %>
+
+  <div class="board-wrap">
+    <h2>업무일지 수정</h2>
+
+    <div class="board-meta">
+        <span>작성일: <%= log.created_at_fmt %></span>
+        <span>수정일: <%= log.updated_at_fmt || '-' %></span>
+    </div>
+
+    <form method="post" action="/worklog/<%= log.log_id %>/edit">
+      <!-- 제목 -->
+      <input
+        class="input-text"
+        type="text"
+        name="title"
+        value="<%= log.title %>"
+        placeholder="제목"
+        required
+      />
+
+      <textarea
+        class="input-textarea"
+        name="content"
+        required
+      ><%= log.content %></textarea>
+
+      <button type="submit" class="btn btn-primary">수정</button>
+      <a href="/worklog/<%= log.log_id %>" class="btn btn-light">목록</a>
+    </form>
+  </div>
+</body>
+</html>

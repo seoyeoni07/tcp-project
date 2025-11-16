@@ -198,18 +198,31 @@ body {
   font-weight: 700;
 }
 
-/* 빈 목록 표시 */
 .empty-row {
   padding: 36px 0;
   text-align: center;
   color: #777;
 }
 
-/* 하단 */
 .board-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.board-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.board-actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 18px;
 }
@@ -362,7 +375,126 @@ body {
 
 .board-content-text {
   margin: 0;
-  padding: 0 16px 16px;
+  padding: 0 0px 16px;
   white-space: pre-wrap; 
   line-height: 1.6;
+}
+
+.worklog-wrap {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 24px 20px;
+}
+
+.worklog-form {
+  margin-top: 24px;
+}
+
+.worklog-form .input-group,
+.worklog-form .form-row {
+  margin-bottom: 16px;
+}
+
+.worklog-form input,
+.worklog-form textarea {
+  width: 100%;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.board-wrap {
+  max-width: 1100px;
+}
+
+.calendar-wrap {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.03);
+}
+
+.calendar-grid td span {
+  display: block;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+#reservation-table {
+  margin-top: 12px;
+}
+
+#reservation-table tbody td {
+  font-size: 13px;
+}
+
+.calendar-wrap {
+  margin-top: 12px;
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.calendar-table th,
+.calendar-table td {
+  border: 1px solid var(--border);
+  padding: 6px 4px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.calendar-table th {
+  background: var(--bg-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.cal-cell {
+  cursor: pointer;
+  background: #fff;
+  transition: background 0.15s ease;
+}
+
+.cal-cell:hover {
+  background: #f3f4f6;
+}
+
+.cal-empty {
+  background: #fafafa;
+}
+
+.cal-date {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cal-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.cal-empty-text {
+  color: var(--muted);
+}
+
+.cal-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-more {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--accent);
 }

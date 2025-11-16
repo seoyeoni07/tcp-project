@@ -1,6 +1,69 @@
-<%- include('../partials/nav') %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>업무일지</title>
 
-<h1>업무일지 목록</h1>
-<a href="/worklog/new">새 업무일지 작성</a>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+<body>
+  
+  <%- include('../partials/nav', { title, user, active: 'worklog' }) %>
 
-<p>여기에 목록 표시</p>
+  <div class="board-wrap">
+    <div class="board-header">
+      <h1 class="board-title">업무일지</h1>
+
+      <div>
+        <a href="/worklog/new" class="btn btn-primary">업무일지 작성</a>
+      </div>
+    </div>
+
+    <table class="board-table">
+      <colgroup>
+        <col style="width:90px" />
+        <col />
+        <col style="width:160px" />
+        <col style="width:140px" />
+        <col style="width:140px" />
+      </colgroup>
+
+      <thead>
+        <tr>
+          <th class="col-no">번호</th>
+          <th class="col-title">제목</th>
+          <th class="col-author">작성자</th>
+          <th class="col-date">작성일</th>
+          <th class="col-date">수정일</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (!logs || logs.length === 0) { %>
+          <tr>
+            <td colspan="5" class="empty-row">
+              등록된 업무일지가 없습니다.
+            </td>
+          </tr>
+        <% } else { %>
+          <% logs.forEach((log, idx) => { %>
+            <tr>
+              <td class="col-no"><%= logs.length - idx %></td>
+              <td class="col-title">
+                <a class="post-link" href="/worklog/<%= log.log_id %>">
+                  <%= log.title %>
+                </a>
+              </td>
+              <td class="col-author"><%= log.author_name %></td>
+              <td class="col-date"><%= log.created_at_fmt %></td>
+              <td class="col-date"><%= log.updated_at_fmt || '-' %></td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

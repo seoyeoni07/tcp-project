@@ -1,4 +1,53 @@
-<%- include('../partials/nav') %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= title %></title>
 
-<h1>내 예약 목록</h1>
-<p>여기에 예약 목록 표시</p>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+<body>
+  <%- include('../partials/nav', { title, user, active: 'meeting' }) %>
+
+  <div class="board-wrap">
+    <div class="board-header">
+      <h1 class="board-title">내 예약 목록</h1>
+
+      <div>
+        <a href="/meeting" class="btn">회의실 목록</a>
+      </div>
+    </div>
+
+    <div class="board-body">
+      <table class="board-table">
+        <thead>
+          <tr>
+            <th class="col-title">회의실</th>
+            <th class="col-author">시작 시간</th>
+            <th class="col-date">종료 시간</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (reservations && reservations.length > 0) { %>
+            <% reservations.forEach(function(r) { %>
+              <tr>
+                <td class="col-title"><%= r.room_name %></td>
+                <td class="col-author"><%= r.start_time %></td>
+                <td class="col-date"><%= r.end_time %></td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="3" class="empty-row">
+                예약 내역이 없습니다.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

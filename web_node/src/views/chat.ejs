@@ -9,43 +9,102 @@
 </head>
 
 <body>
-
   <%- include('partials/nav', { title, user, active: 'chat' }) %>
 
   <div class="chat-wrap" style="display:flex; gap:16px; padding:16px;">
 
-    <!-- 채팅방 목록 -->
     <aside style="width:220px; border:1px solid #ddd; padding:12px;">
-      <h2 style="margin-top:0;">채팅방</h2>
-      <ul style="list-style:none; padding-left:0;">
-        <li>채팅1</li>
-        <li>채팅2</li>
+
+      <div style="margin-bottom:12px;">
+        <h2 style="margin:0;">채팅방</h2>
+
+        <div style="margin-top:6px;">
+          <div style="font-size:13px; margin-bottom:4px; color:#555;">
+            대화 상대 선택
+          </div>
+
+          <select id="user-select" style="width:100%; padding:4px;">
+            <option value="">상대 선택...</option>
+            <% if (users && users.length > 0) { %>
+              <% users.forEach(function (u) { %>
+                <option value="<%= u.user_id %>"><%= u.user_name %></option>
+              <% }) %>
+            <% } %>
+          </select>
+
+          <button
+            id="start-chat-btn"
+            style="margin-top:8px; width:100%; padding:6px; font-size:13px;"
+          >
+            선택한 사용자와 1:1 채팅 시작
+          </button>
+        </div>
+      </div>
+
+      <ul id="room-list" style="list-style:none; padding-left:0; margin:0;">
+        <% if (rooms && rooms.length > 0) { %>
+          <% rooms.forEach(function (room, idx) { %>
+            <li
+              data-room-id="<%= room.room_id %>"
+              class="room-item <%= idx === 0 ? 'active' : '' %>"
+            >
+              <% 
+                const displayName = room.other_name
+                  ? `${room.other_name} 님과의 채팅`
+                  : room.room_name;
+              %>
+              <%= displayName %>
+            </li>
+          <% }) %>
+        <% } else { %>
+          <li class="room-item empty">
+            참여 중인 채팅방이 없습니다.
+          </li>
+        <% } %>
       </ul>
     </aside>
 
     <!-- 메시지 영역 -->
-    <main style="
-      flex:1; 
-      border:1px solid #ddd; 
-      padding:12px; 
-      display:flex; 
-      flex-direction:column; 
-      height:500px;
-    ">
+    <main
+      style="
+        flex:1;
+        border:1px solid #ddd;
+        padding:12px;
+        display:flex;
+        flex-direction:column;
+        height:500px;">
 
-      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h2 style="margin:0;">채팅 1</h2>
+      <header
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:8px;">
+
+        <h2 style="margin:0;">채팅</h2>
         <span><%= user && user.user_name ? user.user_name : "Guest" %></span>
       </header>
 
       <!-- 메시지 출력 -->
-      <section id="messages" style="
-        flex:1; 
-        overflow-y:auto; 
-        border:1px solid #eee; 
-        padding:8px; 
-        margin-bottom:8px;
-      "></section>
+      <section
+        id="messages"
+        style="
+          flex:1;
+          overflow-y:auto;
+          border:1px solid #eee;
+          padding:8px;
+          margin-bottom:8px;">
+
+        <div
+          id="empty-message"
+          style="
+            margin-top:40px;
+            text-align:center;
+            color:#999;
+            font-size:14px;">
+          채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.
+        </div>
+      </section>
 
       <!-- 메시지 입력 -->
       <form id="message-form" style="display:flex; gap:8px;">
@@ -54,89 +113,239 @@
           id="message-input"
           placeholder="메시지를 입력하세요..."
           required
-          style="flex:1; padding:6px;"
-        />
+          style="flex:1; padding:6px;"/>
+
         <button type="submit">전송</button>
       </form>
-
     </main>
   </div>
-  <script src="/socket.io/socket.io.js"></script> 
 
-    <script>
-        const form = document.getElementById('message-form');
-        const input = document.getElementById('message-input');
-        const messagesSection = document.getElementById('messages');
+  <!-- socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
 
-        console.log("메시지 섹션 참조:", messagesSection);
-        
-        const currentUserId = "<%= user && user.user_id ? user.user_id : null %>";
+  <script>
+    const form            = document.getElementById("message-form");
+    const input           = document.getElementById("message-input");
+    const messagesSection = document.getElementById("messages");
+    const roomList        = document.getElementById("room-list");
+    const roomItems       = document.querySelectorAll(".room-item");
+    const headerTitle     = document.querySelector("main header h2");
 
-        // 소켓 연결
-        const socket = io(); 
+    const userSelect      = document.getElementById("user-select");
+    const startChatBtn    = document.getElementById("start-chat-btn");
 
-        function appendMessage(data, isPast = false) {
-            const container = document.createElement('div');
-            container.classList.add('chat-message');
-            
-            const item = document.createElement('div');
-            item.classList.add('message-bubble');
+    const currentUserId   = "<%= user && user.user_id ? user.user_id : null %>";
+    const currentUserName = "<%= user && user.user_name ? user.user_name : '' %>";
 
-            const isMyMessage = (data.user_id == currentUserId);
-            
-            if (isMyMessage) {
-              container.classList.add('my-message');
-            } else {
-              container.classList.add('other-message');
-            }
-            const sender = isMyMessage ? '나' : data.user_name;
-            const msgText = data.message || "메시지 없음";
-            const timestamp = data.timestamp;
+    function makeDisplayTitle(roomText) {
+      if (!roomText) return "채팅";
 
-            item.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">${sender}</div>
-            <div>${msgText}</div>
-            <div style="font-size: 10px; opacity: 0.6; text-align: right; margin-top: 4px;">${timestamp}</div>
-            `;
+      roomText = roomText.trim();
 
-            container.appendChild(item);
-            messagesSection.appendChild(container);
+      if (roomText.includes("↔")) {
+        let [left, right] = roomText.split("↔");
+        left  = left.trim();
+        right = right.replace("1:1 채팅", "").trim();
+
+        let other = (left === currentUserName) ? right : left;
+        if (!other) other = roomText;
+
+        return `${other} 님과의 채팅`;
+      }
+      return roomText;
     }
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault(); // 페이지 새로고침 방지
-            const message = input.value.trim();
-            
-            if (message) {
-                socket.emit('chat message', message);
-                input.value = '';
-            }
-        });
+    // 현재 방 설정
+    let currentRoomId = null;
 
-        socket.on('past message', (data) => {
-            appendMessage(data, true);
-        });
-        
-        socket.on('chat message', (data) => {
-            appendMessage(data, false);
-            if (messagesSection) {
-              messagesSection.scrollTop = messagesSection.scrollHeight;
-              } else {
-        console.error("messagesSection을 찾을 수 없습니다!");
+    let activeRoom = document.querySelector(".room-item.active");
+    if (!activeRoom && roomItems.length > 0) {
+      activeRoom = roomItems[0];
+      activeRoom.classList.add("active");
     }
-        });
-        
-        socket.on('system message', (msg) => {
-            const item = document.createElement('div');
-            item.textContent = `[시스템] ${msg}`;
-            item.style.color = 'gray';
-            messagesSection.appendChild(item);
 
-            if (msg.includes('로딩 완료')) {
-                 messagesSection.scrollTop = messagesSection.scrollHeight;
-            }
-        });
+    if (activeRoom && activeRoom.dataset.roomId) {
+      currentRoomId = activeRoom.dataset.roomId;
+      const roomText = activeRoom.textContent.trim();
+      headerTitle.textContent = makeDisplayTitle(roomText);
+    } else {
+      headerTitle.textContent = "채팅";
+    }
 
-    </script>
+    // socket.io 연결
+    const socket = io();
+
+    // 첫 입장 시 기본 방
+    if (currentRoomId) {
+      socket.emit("join room", Number(currentRoomId));
+    }
+
+    // 빈 메시지 안내 관리
+    function clearEmptyMessage() {
+      const empty = document.getElementById("empty-message");
+      if (empty) empty.remove();
+    }
+
+    function showEmptyMessage() {
+      if (document.getElementById("empty-message")) return;
+
+      const div = document.createElement("div");
+      div.id = "empty-message";
+      div.style.marginTop   = "40px";
+      div.style.textAlign   = "center";
+      div.style.color       = "#999";
+      div.style.fontSize    = "14px";
+      div.textContent       =
+        "채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.";
+      messagesSection.appendChild(div);
+    }
+
+    function activateRoom(roomId, roomName) {
+      document.querySelectorAll(".room-item").forEach((li) => {
+        li.classList.remove("active");
+      });
+
+      // 해당 roomId의 과거 기록 찾기
+      let li = document.querySelector(`.room-item[data-room-id="${roomId}"]`);
+
+      // 없으면 새로 생성
+      if (!li) {
+        li = document.createElement("li");
+        li.className = "room-item";
+        li.dataset.roomId = roomId;
+        li.textContent = roomName;
+        roomList.appendChild(li);
+      }
+
+      li.classList.add("active");
+
+      currentRoomId = String(roomId);
+      headerTitle.textContent = makeDisplayTitle(li.textContent.trim());
+      messagesSection.innerHTML = "";
+      showEmptyMessage();
+
+      socket.emit("join room", Number(currentRoomId));
+    }
+
+    function appendMessage(data, isPast = false) {
+      if (data.room_id && String(data.room_id) !== String(currentRoomId)) {
+        return;
+      }
+
+      clearEmptyMessage();
+
+      const container = document.createElement("div");
+      container.classList.add("chat-message");
+
+      const item = document.createElement("div");
+      item.classList.add("message-bubble");
+
+      const isMyMessage = (data.user_id == currentUserId);
+
+      if (isMyMessage) {
+        container.classList.add("my-message");
+      } else {
+        container.classList.add("other-message");
+      }
+
+      const sender    = isMyMessage ? "나" : data.user_name;
+      const msgText   = data.message || "메시지 없음";
+      const timestamp = data.timestamp || "";
+
+      item.innerHTML = `
+        <div style="font-weight:bold; margin-bottom:4px;">${sender}</div>
+        <div>${msgText}</div>
+        <div style="font-size:10px; opacity:0.6; text-align:right; margin-top:4px;">
+          ${timestamp}
+        </div>
+      `;
+
+      container.appendChild(item);
+      messagesSection.appendChild(container);
+
+      messagesSection.scrollTop = messagesSection.scrollHeight;
+    }
+
+    // 방 클릭(전환)
+    if (roomList) {
+      roomList.addEventListener("click", (e) => {
+        const li = e.target.closest(".room-item");
+        if (!li || !li.dataset.roomId) return;
+        if (li.classList.contains("empty")) return;
+
+        const newRoomId = li.dataset.roomId;
+        if (!newRoomId || newRoomId === currentRoomId) return;
+
+        activateRoom(newRoomId, li.textContent.trim());
+      });
+    }
+
+    // 채팅 상대방 선택
+    if (startChatBtn) {
+      startChatBtn.addEventListener("click", async () => {
+        const otherId = userSelect.value;
+        if (!otherId) {
+          alert("대화 상대를 선택하세요.");
+          return;
+        }
+
+        try {
+          const res = await fetch("/chat/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: otherId }),
+          });
+
+          const data = await res.json();
+          if (!data.ok) {
+            alert(data.error || "채팅방 생성 중 오류가 발생했습니다.");
+            return;
+          }
+
+          const { room_id, room_name } = data.room;
+          activateRoom(room_id, room_name);
+        } catch (err) {
+          console.error(err);
+          alert("서버 통신 중 오류가 발생했습니다.");
+        }
+      });
+    }
+
+    // 메시지 전송
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const message = input.value.trim();
+      if (!message || !currentRoomId) return;
+
+      socket.emit("chat message", {
+        room_id: currentRoomId,
+        message: message,
+      });
+
+      input.value = "";
+    });
+
+    // 소켓 이벤트 수신
+    socket.on("past message", (data) => {
+      appendMessage(data, true);
+    });
+
+    socket.on("chat message", (data) => {
+      appendMessage(data, false);
+    });
+
+    socket.on("system message", (msg) => {
+      clearEmptyMessage();
+
+      const item = document.createElement("div");
+      item.textContent = `[시스템] ${msg}`;
+      item.style.color = "gray";
+      item.style.fontSize = "12px";
+      messagesSection.appendChild(item);
+
+      messagesSection.scrollTop = messagesSection.scrollHeight;
+    });
+  </script>
 </body>
 </html>

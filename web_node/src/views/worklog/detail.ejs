@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= log.title %> - 업무일지</title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+<body>
+
+  <%- include('../partials/nav', { title, user, active: 'worklog' }) %>
+
+  <div class="board-wrap">
+    <h2 class="post-title"><%= log.title %></h2>
+
+    <div class="board-meta">
+      <span>작성자: <%= log.author_name %></span>
+      <span>작성일: <%= log.created_at_fmt %></span>
+
+      <% if (log.updated_at_fmt) { %>
+        <span>수정일: <%= log.updated_at_fmt %></span>
+      <% } %>
+    </div>
+
+    <div class="board-content">
+      <div class="board-content-text">
+        <%= (log.content || '').trimStart() %>
+      </div>
+    </div>
+
+    <div class="board-actions">
+      <a href="/worklog" class="btn btn-light">목록</a>
+
+      <% if (canEdit) { %>
+        <a href="/worklog/<%= log.log_id %>/edit" class="btn btn-primary">수정</a>
+
+        <form
+          method="post"
+          action="/worklog/<%= log.log_id %>/delete"
+          style="display:inline;"
+          onsubmit="return confirm('정말 삭제하시겠습니까?');"
+        >
+          <button type="submit" class="btn btn-danger">삭제</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
