@@ -3,12 +3,11 @@ import session from "express-session";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer } from "http";     // http 서버
-import { Server } from "socket.io";      // socket.io 서버
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 import db from "./config/db.js";
 
-// 라우터
 import authRouter from "./routes/auth.js";
 import boardRouter from "./routes/board.js";
 import chatRouter from "./routes/chat.js";
@@ -20,7 +19,6 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-// socket.io 서버 생성
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
@@ -45,25 +43,22 @@ const sessionMiddleware = session({
 });
 app.use(sessionMiddleware);
 
-// 라우터 연결
 app.use("/", authRouter);
 app.use("/board", boardRouter);
 app.use("/chat", chatRouter);
 app.use("/worklog", worklogRouter);
 app.use("/meeting", meetingRouter);
 
-// socket.io – 세션 연동
 io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-// 과거 메시지 조회
 async function getPastMessages(roomId) {
   const safeRoomId = Number(roomId) || 1;
 
   try {
     const query = `
-      SELECT m.content, m.created_at, u.user_name, m.user_id
+      SELECT m.message_id, m.content, m.created_at, u.user_name, m.user_id
       FROM messages m
       JOIN users u ON m.user_id = u.user_id
       WHERE m.room_id = ?
@@ -78,11 +73,10 @@ async function getPastMessages(roomId) {
   }
 }
 
-// 메시지 저장
 async function saveChatMessage(userId, messageContent, roomId) {
   if (!userId || !messageContent) {
     console.error("[DB ERROR] 사용자 ID 또는 메시지 내용이 없습니다. 저장 불가.");
-    return;
+    return null;
   }
 
   const safeRoomId = Number(roomId) || 1;
@@ -92,14 +86,62 @@ async function saveChatMessage(userId, messageContent, roomId) {
       INSERT INTO messages (user_id, room_id, content)
       VALUES (?, ?, ?)
     `;
-    await db.query(query, [userId, safeRoomId, messageContent]);
+    const [result] = await db.query(query, [userId, safeRoomId, messageContent]);
+    return result.insertId;
   } catch (error) {
     console.error("메시지 DB 저장 오류:", error);
     throw error;
   }
 }
 
-// socket.io – 연결 처리
+async function updateLastReadMessageId(userId, roomId, messageId) {
+  try {
+    const query = `
+            INSERT INTO chat_participants (room_id, user_id, last_read_message_id)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE last_read_message_id = ?
+        `;
+    await db.query(query, [roomId, userId, messageId, messageId]);
+  } catch (error) {
+    console.error("마지막 읽은 메시지 ID 업데이트 오류:", error);
+  }
+}
+
+async function getRoomParticipants(roomId) {
+  try {
+    const [rows] = await db.query(
+      "SELECT user_id FROM chat_participants WHERE room_id = ?",
+      [roomId]
+    );
+    return rows.map(row => Number(row.user_id));
+  } catch (error) {
+    console.error("채팅방 참여자 조회 오류:", error);
+    return [];
+  }
+}
+
+//새 채팅방 생성시 알림
+
+export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
+  if (!io) return;
+
+  io.fetchSockets().then(sockets => {
+    sockets.forEach(s => {
+      if (participantIds.includes(s.userId)) {
+        s.emit("new room created", {
+          room_id: newRoomId,
+          room_name: roomInfo.room_name,
+          type: roomInfo.type,
+          other_name: roomInfo.type === 'single' ? roomInfo.otherName : null
+        });
+      }
+    });
+  }).catch(err => {
+    console.error("New room notification error:", err);
+  });
+}
+
+
 io.on("connection", (socket) => {
   const sessionUser = socket.request.session.user;
 
@@ -116,29 +158,9 @@ io.on("connection", (socket) => {
   socket.userName = userName;
 
   let currentRoomId = 1;
-  socket.join(`room-${currentRoomId}`);
-
-  getPastMessages(currentRoomId)
-    .then((messages) => {
-      messages.forEach((msg) => {
-        socket.emit("past message", {
-          user_id: msg.user_id,
-          user_name: msg.user_name,
-          message: msg.content,
-          timestamp: new Date(msg.created_at).toLocaleTimeString(),
-          room_id: currentRoomId,
-        });
-      });
-      socket.emit("system message", "채팅 내역 로딩 완료.");
-    })
-    .catch((err) => {
-      console.error("과거 메시지 전송 실패:", err);
-      socket.emit("system message", "채팅 내역을 불러오는 데 실패했습니다.");
-    });
 
   socket.emit("system message", `${userName}님, 채팅방에 오신 것을 환영합니다!`);
 
-  // === 방 전환(join room) ===
   socket.on("join room", async (roomId) => {
     if (!roomId) return;
 
@@ -147,9 +169,15 @@ io.on("connection", (socket) => {
     socket.join(`room-${currentRoomId}`);
 
     try {
+      socket.emit("clear messages");
+
       const messages = await getPastMessages(currentRoomId);
 
-      socket.emit("clear messages");
+      const lastMessageId = messages.length > 0 ? messages[messages.length - 1].message_id : null;
+      if (lastMessageId) {
+        // 방에 들어오면 마지막 메시지까지 읽음 처리
+        await updateLastReadMessageId(userId, currentRoomId, lastMessageId);
+      }
 
       messages.forEach((msg) => {
         socket.emit("past message", {
@@ -158,6 +186,7 @@ io.on("connection", (socket) => {
           message: msg.content,
           timestamp: new Date(msg.created_at).toLocaleTimeString(),
           room_id: currentRoomId,
+          message_id: msg.message_id,
         });
       });
 
@@ -171,7 +200,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // === 채팅 전송 ===
+  socket.on("read message", (messageId) => {
+    if (messageId && currentRoomId) {
+      updateLastReadMessageId(userId, currentRoomId, Number(messageId));
+    }
+  });
+
   socket.on("chat message", async (payload) => {
 
     const isObject = typeof payload === "object" && payload !== null;
@@ -183,24 +217,44 @@ io.on("connection", (socket) => {
     const roomId = roomIdFromClient || currentRoomId;
 
     if (!text) {
-      // 빈 메시지 무시
       return;
     }
 
+    let newMessageId;
     try {
-      await saveChatMessage(socket.userId, text, roomId);
+      newMessageId = await saveChatMessage(socket.userId, text, roomId);
+      if (!newMessageId) return;
+
+      // 메시지 전송 직후 읽음 처리 (자신)
+      await updateLastReadMessageId(socket.userId, roomId, newMessageId);
+
     } catch (error) {
       console.error("메시지 DB 저장 오류:", error);
       socket.emit("system message", "메시지 저장 중 오류가 발생했습니다.");
       return;
     }
 
-    io.to(`room-${roomId}`).emit("chat message", {
+    const messageData = {
       user_id: socket.userId,
       user_name: socket.userName,
       message: text,
       timestamp: new Date().toLocaleTimeString(),
       room_id: roomId,
+      message_id: newMessageId,
+    };
+
+    //메시지 보낸 방 전체에 메시지 전송 (현재 접속자)
+    io.to(`room-${roomId}`).emit("chat message", messageData);
+
+    //메시지를 보낸 사용자 본인을 제외한 참여자에게 알림 전송
+    const participantIds = await getRoomParticipants(roomId);
+
+    io.fetchSockets().then(sockets => {
+      sockets.forEach(s => {
+        if (participantIds.includes(s.userId) && s.userId !== socket.userId) {
+          s.emit("new message notification", messageData);
+        }
+      });
     });
   });
 

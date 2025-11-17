@@ -122,15 +122,14 @@ CREATE TABLE IF NOT EXISTS meeting_reservations (
   COLLATE=utf8mb4_0900_ai_ci;
 
 -- 채팅방(chat_rooms)
--- 1:1 / 그룹 여부
+-- 1:1 / 그룹 여부 **수정함**
 CREATE TABLE IF NOT EXISTS chat_rooms (
-  room_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  room_name  VARCHAR(100) NOT NULL,
-  is_group   TINYINT(1) NOT NULL DEFAULT 0,
+  room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  room_name VARCHAR(100) NOT NULL,
+  type ENUM('single', 'group') NOT NULL DEFAULT 'single', 
   created_by INT UNSIGNED DEFAULT NULL,
   created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (room_id),
-  UNIQUE KEY room_name (room_name),
   KEY fk_chat_rooms_created_by (created_by),
   CONSTRAINT fk_chat_rooms_created_by
     FOREIGN KEY (created_by) REFERENCES users(user_id)
@@ -138,14 +137,15 @@ CREATE TABLE IF NOT EXISTS chat_rooms (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 채팅방 참여자(chat_participants)
+-- 채팅방 참여자(chat_participants) **수정함**
 -- 어떤 사용자가 어떤 채팅방에 속하는지
 CREATE TABLE IF NOT EXISTS chat_participants (
   participant_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  room_id        INT UNSIGNED NOT NULL,
-  user_id        INT UNSIGNED NOT NULL,
+  room_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
+  last_read_message_id INT UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (participant_id),
-  KEY cp_room (room_id),
+  UNIQUE KEY unique_participant (room_id, user_id),
   KEY cp_user (user_id),
   CONSTRAINT chat_participants_ibfk_1
     FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id)
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS chat_participants (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
-
+  
 -- 채팅 메시지(messages)
 -- 채팅 메시지 내용 저장
 CREATE TABLE IF NOT EXISTS messages (
