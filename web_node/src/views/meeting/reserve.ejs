@@ -11,17 +11,18 @@
 <body>
   <%- include('../partials/nav', { title, user, active: 'meeting' }) %>
 
-  <div class="reserve-wrap">
-    <div class="board-header">
-      <h1 class="board-title">회의실 예약</h1>
-    </div>
+  <div class="meeting-form-page">
+    <div class="board-wrap">
+      <div class="board-header">
+        <h1 class="board-title">회의실 예약</h1>
+      </div>
 
-    <div class="form-wrap">
-      <% if (error) { %>
-        <div class="error-message"><%= error %></div>
-      <% } %>
+      <div class="form-wrap">
+        <% if (error) { %>
+          <div class="error-message"><%= error %></div>
+        <% } %>
 
-      <form method="post" action="/meeting/reserve">
+        <form method="post" action="/meeting/reserve">
         <div class="form-row">
           <label for="room_id">회의실</label>
           <select id="room_id" name="room_id" class="input-text" required>
@@ -50,11 +51,29 @@
         <div class="form-actions">
           <a href="/meeting" class="btn">목록으로</a>
           <button type="submit" class="btn btn-primary">예약하기</button>
-        </div>
-      </form>
+        </div><body>
+  <%- include('../partials/nav', { title, user, active: 'meeting' }) %>
 
+  <div class="meeting-form-page">
+    <div class="board-wrap">
+      <div class="board-header">
+        <h1 class="board-title">회의실 예약</h1>
+      </div>
+
+      <div class="form-wrap">
+        <% if (error) { %>
+          <div class="error-message"><%= error %></div>
+        <% } %>
+
+        <form method="post" action="/meeting/reserve">
+        </form>
+      </div>
     </div>
   </div>
+</body>
 
+      </form>
+    </div>
+  </div>
 </body>
 </html>

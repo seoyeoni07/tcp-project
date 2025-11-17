@@ -18,7 +18,7 @@ function requireAdmin(req, res, next) {
 }
 
 function parseLocalDateTime(str) {
-  if (!str) return null; // "2025-11-16T09:00" → "2025-11-16 09:00:00"
+  if (!str) return null;
   return str.replace("T", " ") + ":00";
 }
 

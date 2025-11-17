@@ -1,93 +1,171 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title><%= title %> - <%= log.title %></title>
-    <style>
-        .form-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-        .form-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        textarea {
-            min-height: 200px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title><%= title %> - <%= log.title %></title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+
+  <style>
+
+    .form-wrap {
+      max-width: 800px;   
+      margin: 0 auto;   
+    }
+
+    .wl-form-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    .wl-form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .wl-form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .wl-form-group input,
+    .wl-form-group select,
+    .wl-form-group textarea {
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .wl-form-group textarea {
+      min-height: 200px;
+      resize: vertical;
+    }
+    .wl-actions {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+  </style>
 </head>
+
 <body>
-    <%- include('../partials/nav', { title, user, active }) %>
+  <%- include('../partials/nav', { title, user, active }) %>
 
-    <div class="container mt-5">
-        <h1><%= title %></h1>
-        <hr>
-        
-        <form method="POST" action="/worklog/<%= log.log_id %>/edit">
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="work_date">업무일</label>
-                    <input type="date" class="form-control" id="work_date" name="work_date" value="<%= log.work_date %>" required>
-                </div>
-                <div class="form-group">
-                    <label for="start_time">출근 시간</label>
-                    <input type="time" class="form-control" id="start_time" name="start_time" value="<%= log.start_time.substring(0, 5) %>" required>
-                </div>
-                <div class="form-group">
-                    <label for="end_time">퇴근 시간</label>
-                    <input type="time" class="form-control" id="end_time" name="end_time" value="<%= log.end_time.substring(0, 5) %>" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="department">부서명</label>
-                    <input type="text" class="form-control" id="department" name="department" value="<%= log.department || '' %>" required>
-                </div>
-                <div class="form-group">
-                    <label for="position">직위</label>
-                    <input type="text" class="form-control" id="position" name="position" value="<%= log.position || '' %>" required>
-                </div>
-                <div class="form-group">
-                    <label for="author_name">작성자</label>
-                    <input type="text" class="form-control" id="author_name" value="<%= user.user_name %>" disabled>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="title">제목</label>
-                <input type="text" class="form-control" id="title" name="title" value="<%= log.title %>" required>
-            </div>
-
-            <div class="form-group">
-                <label for="content">진행 업무 / 특이사항</label>
-                <textarea class="form-control" id="content" name="content" required><%= log.content %></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="next_plan">익일 업무 계획</label>
-                <textarea class="form-control" id="next_plan" name="next_plan"><%= log.next_plan || '' %></textarea>
-            </div>
-            
-            <div class="text-right mt-4">
-                <button type="submit" class="btn btn-primary">수정 완료</button>
-                <a href="/worklog/<%= log.log_id %>" class="btn btn-secondary">취소 및 돌아가기</a>
-            </div>
-        </form>
+  <div class="board-wrap">
+    <div class="board-header wl-header">
+      <h1 class="board-title"><%= title %></h1>
     </div>
 
+    <div class="form-wrap">
+      <form method="POST" action="/worklog/<%= log.log_id %>/edit">
+
+        <div class="wl-form-row">
+          <div class="wl-form-group">
+            <label for="work_date">업무일</label>
+            <input
+              type="date"
+              id="work_date"
+              name="work_date"
+              value="<%= log.work_date %>"
+              required
+            />
+          </div>
+
+          <div class="wl-form-group">
+            <label for="start_time">출근 시간</label>
+            <input
+              type="time"
+              id="start_time"
+              name="start_time"
+              value="<%= log.start_time.substring(0, 5) %>"
+              required
+            />
+          </div>
+
+          <div class="wl-form-group">
+            <label for="end_time">퇴근 시간</label>
+            <input
+              type="time"
+              id="end_time"
+              name="end_time"
+              value="<%= log.end_time.substring(0, 5) %>"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="wl-form-row">
+          <div class="wl-form-group">
+            <label for="department">부서명</label>
+            <input
+              type="text"
+              id="department"
+              name="department"
+              value="<%= log.department || '' %>"
+              required
+            />
+          </div>
+
+          <div class="wl-form-group">
+            <label for="position">직위</label>
+            <input
+              type="text"
+              id="position"
+              name="position"
+              value="<%= log.position || '' %>"
+              required
+            />
+          </div>
+
+          <div class="wl-form-group">
+            <label for="author_name">작성자</label>
+            <input
+              type="text"
+              id="author_name"
+              value="<%= user.user_name %>"
+              disabled
+            />
+          </div>
+        </div>
+
+        <div class="wl-form-group">
+          <label for="title">제목</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value="<%= log.title %>"
+            required
+          />
+        </div>
+
+        <div class="wl-form-group">
+          <label for="content">진행 업무 / 특이사항</label>
+          <textarea
+            id="content"
+            name="content"
+            required
+          ><%= log.content %></textarea>
+        </div>
+
+        <div class="wl-form-group">
+          <label for="next_plan">익일 업무 계획</label>
+          <textarea
+            id="next_plan"
+            name="next_plan"
+          ><%= log.next_plan || '' %></textarea>
+        </div>
+
+        <div class="wl-actions">
+          <button type="submit" class="btn btn-primary">수정</button>
+          <a href="/worklog/<%= log.log_id %>" class="btn btn-light">
+            목록으로
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

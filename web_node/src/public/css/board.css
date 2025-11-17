@@ -509,3 +509,26 @@ body {
 .board-table td:not(.col-title) {
   text-align: center;
 }
+
+.form-page-wrap {
+  max-width: 720px;
+  margin: 40px auto 64px;
+  padding: 0 12px;
+}
+
+.meeting-form-page {
+  display: flex;
+  justify-content: center;
+}
+
+.meeting-form-page .board-wrap {
+  max-width: 720px;
+  width: 100%;
+  margin: 48px auto 80px;
+}
+
+    .wl-header {
+      max-width: 800px;     
+      margin: 0 auto 20px;   
+      justify-content: flex-start; 
+    }

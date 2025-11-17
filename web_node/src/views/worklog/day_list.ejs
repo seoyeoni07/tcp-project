@@ -35,7 +35,7 @@
         .item-title a {
             font-size: 1.2em;
             font-weight: bold;
-            color: #4285f4;
+            color: #111;;
             text-decoration: none;
         }
         .item-details {
@@ -44,6 +44,21 @@
         }
         .item-details span {
             margin-right: 15px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fafafa;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: #fafafa;
         }
     </style>
 </head>
@@ -77,7 +92,10 @@
                 <p class="text-center text-muted">해당 날짜에 작성된 업무일지가 없습니다.</p>
             <% } %>
             
-            <a href="/worklog?year=<%= date.substring(0, 4) %>&month=<%= date.substring(5, 7) %>" class="btn btn-secondary mt-3">달력으로 돌아가기</a>
+            <a href="/worklog?year=<%= date.substring(0, 4) %>&month=<%= date.substring(5, 7) %>" 
+                class="btn-back mt-3">
+                목록으로
+            </a>
         </div>
     </div>
 </body>
