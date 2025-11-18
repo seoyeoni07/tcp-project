@@ -1,68 +1,73 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <link rel="stylesheet" href="/css/board.css" />
 </head>
+
 <body>
   <%- include('../partials/nav', { title, user, active: 'meeting' }) %>
 
-  <div class="board-wrap">
-    <div class="board-header">
-      <h1 class="board-title">회의실 관리</h1>
-      <a href="/meeting" class="btn btn-outline">달력으로 돌아가기</a>
-    </div>
+    <div class="board-wrap">
+      <div class="board-header">
+        <h1 class="board-title">회의실 관리</h1>
+        <a href="/meeting" class="btn btn-outline">달력으로 돌아가기</a>
+      </div>
 
-    <% if (error) { %>
-      <div class="board-error"><%= error %></div>
-    <% } %>
-
-    <div class="board-section" style="margin-bottom:24px;">
-      <h2 class="board-title" style="font-size:18px;">회의실 추가</h2>
-      <form method="post" action="/meeting/rooms" style="display:flex; gap:8px; align-items:center;">
-        <input type="text"
-               name="room_name"
-               placeholder="회의실 이름"
-               required
-               class="form-input"
-               style="flex:2; max-width:260px;">
-        <input type="number"
-               name="capacity"
-               placeholder="수용 인원(선택)"
-               min="1"
-               class="form-input"
-               style="flex:1; max-width:140px;">
-        <button type="submit" class="btn btn-primary">추가</button>
-      </form>
-    </div>
-
-    <table class="board-table">
-      <thead>
-        <tr>
-          <th style="width:80px;">ID</th>
-          <th>회의실명</th>
-          <th style="width:120px;">수용 인원</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!rooms || rooms.length === 0) { %>
-          <tr>
-            <td colspan="3" class="empty-row">등록된 회의실이 없습니다.</td>
-          </tr>
-        <% } else { %>
-          <% rooms.forEach(function(r){ %>
-            <tr>
-              <td><%= r.room_id %></td>
-              <td><%= r.room_name %></td>
-              <td><%= r.capacity || '-' %></td>
-            </tr>
-          <% }) %>
+      <% if (error) { %>
+        <div class="board-error">
+          <%= error %>
+        </div>
         <% } %>
-      </tbody>
-    </table>
-  </div>
+
+          <div class="board-section" style="margin-bottom:24px;">
+            <h2 class="board-title" style="font-size:18px;">회의실 추가</h2>
+            <form method="post" action="/meeting/rooms" style="display:flex; gap:8px; align-items:center;">
+              <input type="text" name="room_name" placeholder="회의실 이름" required class="form-input"
+                style="flex:2; max-width:260px;">
+              <input type="number" name="capacity" placeholder="수용 인원(선택)" min="1" class="form-input"
+                style="flex:1; max-width:140px;">
+              <button type="submit" class="btn btn-primary">추가</button>
+            </form>
+          </div>
+
+          <table class="board-table">
+            <thead>
+              <tr>
+                <th style="width:80px;">ID</th>
+                <th>회의실명</th>
+                <th style="width:120px;">수용 인원</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!rooms || rooms.length===0) { %>
+                <tr>
+                  <td colspan="3" class="empty-row">등록된 회의실이 없습니다.</td>
+                </tr>
+                <% } else { %>
+                  <% rooms.forEach(function(r){ %>
+                    <tr>
+                      <td>
+                        <%= r.room_id %>
+                      </td>
+                      <td>
+                        <%= r.room_name %>
+                      </td>
+                      <td>
+                        <%= r.capacity || '-' %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } %>
+            </tbody>
+          </table>
+    </div>
 </body>
+
 </html>
