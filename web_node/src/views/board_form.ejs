@@ -22,7 +22,11 @@
       <% } %>
     </div>
 
-    <form method="post" action="<%= mode === 'edit' && post ? ('/board/' + post.post_id + '/edit') : '/board/new' %>">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      action="<%= mode === 'edit' && post ? ('/board/' + post.post_id + '/edit') : '/board/new' %>"
+    >
       <!-- 제목 -->
       <input
         class="input-text"
@@ -52,8 +56,20 @@
         </div>
       <% } %>
 
+      <!-- 첨부 파일 -->
+      <div class="form-row">
+        <label>첨부 파일</label>
+        <input type="file" name="attachment" />
+        <% if (mode === 'edit' && post && post.file_original) { %>
+          <div class="help-text">
+            현재 파일: <%= post.file_original %>
+          </div>
+        <% } %>
+      </div>
+
       <!-- 버튼 -->
       <button type="submit" class="btn btn-primary">
+
         <%= mode === 'edit' ? '수정' : '등록' %>
       </button>
       <a href="/board" class="btn btn-secondary">목록</a>

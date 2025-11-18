@@ -527,8 +527,17 @@ body {
   margin: 48px auto 80px;
 }
 
-    .wl-header {
-      max-width: 800px;     
-      margin: 0 auto 20px;   
-      justify-content: flex-start; 
-    }
+.wl-header {
+  max-width: 800px;     
+  margin: 0 auto 20px;   
+  justify-content: flex-start; 
+}
+
+.board-attachment {
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+.board-attachment a {
+  text-decoration: underline;
+}

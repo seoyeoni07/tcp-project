@@ -1,7 +1,81 @@
 import express from "express";
 import db from "../config/db.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 업로드 폴더: web_node/src/public/uploads
+const uploadDir = path.join(__dirname, "..", "public", "uploads");
+
+// 폴더 없으면 생성
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+//저장 방식 설정
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename(req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    cb(null, unique + ext);  
+  },
+});
+
+// 파일 다운로드
+router.get("/download/:id", async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).send("잘못된 요청입니다.");
+    }
+
+    const [rows] = await db.query(
+      `
+      SELECT file_original, file_saved
+      FROM boards
+      WHERE post_id = ?
+      `,
+      [id]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).send("파일 정보가 없습니다.");
+    }
+
+    const { file_original, file_saved } = rows[0];
+
+    if (!file_saved) {
+      return res.status(404).send("첨부 파일이 없습니다.");
+    }
+
+    const filePath = path.join(uploadDir, file_saved);
+
+    if (!fs.existsSync(filePath)) {
+      console.error("다운로드 실패 - 파일이 존재하지 않음:", filePath);
+      return res.status(404).send("서버에 파일이 존재하지 않습니다.");
+    }
+
+    const downloadName = file_original
+      ? file_original.normalize("NFC")
+      : file_saved;
+
+    return res.download(filePath, downloadName);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const upload = multer({ storage });
 
 // 로그인 여부
 function requireLogin(req, res, next) {
@@ -99,35 +173,58 @@ router.get("/new", requireLogin, (req, res) => {
 });
 
 // 글 등록
-router.post("/new", requireLogin, async (req, res, next) => {
-  try {
-    const { title, content, is_notice } = req.body;
-    const user = req.session.user;
-    if (!user) return res.redirect("/");
+router.post(
+  "/new",
+  requireLogin,
+  upload.single("attachment"),
+  async (req, res, next) => {
+    try {
+      const { title, content, is_notice } = req.body;
+      const user = req.session.user;
+      if (!user) return res.redirect("/");
 
-    if (!title || !content) {
-      return res.status(400).send("제목과 내용을 입력하세요.");
+      if (!title || !content) {
+        return res.status(400).send("제목과 내용을 입력하세요.");
+      }
+
+      const isAdmin = user.role === "admin";
+      const isNoticeValue = isAdmin && is_notice ? 1 : 0;
+      const file = req.file;
+      let fileOriginal = null;
+      let fileSaved = null;
+      let fileSize = null;
+
+      if (file) {
+        const decoded = Buffer.from(file.originalname, "latin1").toString("utf8");
+        fileOriginal = decoded.normalize("NFC");  // 맥/윈도우 한글 조합 통일
+        fileSaved = file.filename;
+        fileSize = file.size;
+      }
+
+      const [result] = await db.query(
+        `
+        INSERT INTO boards
+          (user_id, title, content, is_notice, file_original, file_saved, file_size)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          user.user_id,
+          title,
+          content,
+          isNoticeValue,
+          fileOriginal,
+          fileSaved,
+          fileSize,
+        ]
+      );
+
+      const newId = result.insertId;
+      return res.redirect(`/board/${newId}`);
+    } catch (err) {
+      next(err);
     }
-
-    const isAdmin = user.role === "admin";
-
-    // 관리자만 공지 가능
-    const isNoticeValue = isAdmin && is_notice ? 1 : 0;
-
-    const [result] = await db.query(
-      `
-      INSERT INTO boards (user_id, title, content, is_notice)
-      VALUES (?, ?, ?, ?)
-      `,
-      [user.user_id, title, content, isNoticeValue]
-    );
-
-    const newId = result.insertId;
-    return res.redirect(`/board/${newId}`);
-  } catch (err) {
-    next(err);
   }
-});
+);
 
 // 글 수정
 router.get("/:id/edit", requireLogin, async (req, res, next) => {
@@ -178,45 +275,49 @@ router.get("/:id/edit", requireLogin, async (req, res, next) => {
 });
 
 // 글 수정
-router.post("/:id/edit", requireLogin, async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (Number.isNaN(id)) {
-      return res.status(400).send("잘못된 요청입니다.");
+router.post(
+  "/:id/edit",
+  requireLogin,
+  upload.single("attachment"),  
+  async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (Number.isNaN(id)) {
+        return res.status(400).send("잘못된 요청입니다.");
+      }
+
+      const { title, content, is_notice } = req.body;
+      const user = req.session.user;
+      if (!user) return res.redirect("/");
+
+      if (!title || !content) {
+        return res.status(400).send("제목과 내용을 입력하세요.");
+      }
+
+      const isAdmin = user.role === "admin";
+      const isNoticeValue = isAdmin && is_notice ? 1 : 0;
+      const [result] = await db.query(
+        `
+        UPDATE boards
+        SET title = ?, content = ?, is_notice = ?, updated_at = NOW()
+        WHERE post_id = ?
+          AND (user_id = ? OR ? = 'admin')
+        `,
+        [title, content, isNoticeValue, id, user.user_id, user.role]
+      );
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(403)
+          .send("수정 권한이 없거나 글이 존재하지 않습니다.");
+      }
+
+      return res.redirect(`/board/${id}`);
+    } catch (err) {
+      next(err);
     }
-
-    const { title, content, is_notice } = req.body;
-    const user = req.session.user;
-    if (!user) return res.redirect("/");
-
-    if (!title || !content) {
-      return res.status(400).send("제목과 내용을 입력하세요.");
-    }
-
-    const isAdmin = user.role === "admin";
-    const isNoticeValue = isAdmin && is_notice ? 1 : 0;
-
-    const [result] = await db.query(
-      `
-      UPDATE boards
-      SET title = ?, content = ?, is_notice = ?, updated_at = NOW()
-      WHERE post_id = ?
-        AND (user_id = ? OR ? = 'admin')
-      `,
-      [title, content, isNoticeValue, id, user.user_id, user.role]
-    );
-
-    if (result.affectedRows === 0) {
-      return res
-        .status(403)
-        .send("수정 권한이 없거나 글이 존재하지 않습니다.");
-    }
-
-    return res.redirect(`/board/${id}`);
-  } catch (err) {
-    next(err);
   }
-});
+);
 
 // 글 삭제
 router.post("/:id/delete", requireLogin, async (req, res, next) => {
@@ -266,14 +367,17 @@ router.get("/:id", requireLogin, async (req, res, next) => {
     const [rows] = await db.query(
       `
       SELECT b.post_id,
-             b.user_id,
-             b.title,
-             b.content,
-             b.is_notice,
-             b.view_count AS views,
-             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i') AS created_at_fmt,
-             DATE_FORMAT(b.updated_at, '%Y-%m-%d %H:%i') AS updated_at_fmt,
-             u.user_name AS author_name
+            b.user_id,
+            b.title,
+            b.content,
+            b.is_notice,
+            b.view_count AS views,
+            b.file_original,
+            b.file_saved,
+            b.file_size,
+            DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i') AS created_at_fmt,
+            DATE_FORMAT(b.updated_at, '%Y-%m-%d %H:%i') AS updated_at_fmt,
+            u.user_name AS author_name
       FROM boards b
       JOIN users u ON u.user_id = b.user_id
       WHERE b.post_id = ?

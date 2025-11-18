@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/css/nav.css" />
   <link rel="stylesheet" href="/css/board.css" />
 
-  <style>
+    <style>
     .board-header {
       display: flex;
       justify-content: space-between;
@@ -21,25 +21,14 @@
       align-items: center;
     }
 
-    .board-header-right form {
+    .board-header-right .meeting-nav-form {
       display: flex;
       align-items: center;
+      gap: 8px;
     }
 
-    .board-header-right span {
-      margin: 0 10px;
-      font-size: 1.1em;
-      font-weight: bold;
-    }
-
-    .board-header-right button {
-      padding: 5px 10px;
-      border: 1px solid #ccc;
-      color: #fff; 
-      background: #007bff; 
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9em;
+    .meeting-today-btn {
+      margin-left: 4px;
     }
 
     .calendar-wrap {
@@ -107,20 +96,37 @@
 <body>
   <%- include('../partials/nav', { title, user, active }) %>
 
-  <div class="board-wrap">
+    <div class="board-wrap">
     <div class="board-header">
       <h1 class="board-title">업무일지</h1>
 
       <div class="board-header-right">
-        <form method="get" action="/worklog" class="calendar-nav">
+        <form method="get" action="/worklog" class="meeting-nav-form">
           <input type="hidden" name="year" value="<%= year %>">
           <input type="hidden" name="month" value="<%= month %>">
 
-          <button type="submit" name="prev" value="1">◀</button>
-          <span>
+          <button type="submit"
+                  name="prev"
+                  value="1"
+                  class="btn btn-secondary btn-sm">
+            ◀
+          </button>
+
+          <span class="meeting-month-label">
             <%= year %>년 <%= month %>월
           </span>
-          <button type="submit" name="next" value="1">▶</button>
+
+          <button type="submit"
+                  name="next"
+                  value="1"
+                  class="btn btn-secondary btn-sm">
+            ▶
+          </button>
+
+          <a href="/worklog"
+             class="btn btn-primary btn-sm meeting-today-btn">
+            오늘
+          </a>
         </form>
       </div>
     </div>
