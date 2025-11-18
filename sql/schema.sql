@@ -19,25 +19,31 @@ CREATE TABLE IF NOT EXISTS users (
   COLLATE=utf8mb4_0900_ai_ci;
 
 -- 게시판 글(boards)
--- 일반 게시글 + 공지
+-- 일반 게시글 + 공지 + 파일첨부
 CREATE TABLE IF NOT EXISTS boards (
-  post_id     INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  user_id     INT UNSIGNED NOT NULL,
-  title       VARCHAR(200) NOT NULL,
-  content     TEXT         NOT NULL,
-  is_notice   TINYINT(1)   NOT NULL DEFAULT 0,
-  view_count  INT UNSIGNED NOT NULL DEFAULT 0,
-  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
-                               ON UPDATE CURRENT_TIMESTAMP,
+  post_id       INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id       INT UNSIGNED NOT NULL,
+  title         VARCHAR(200) NOT NULL,
+  content       TEXT         NOT NULL,
+
+  -- 파일 첨부 컬럼
+  file_original VARCHAR(255) DEFAULT NULL,  
+  file_saved    VARCHAR(255) DEFAULT NULL,  
+  file_size     INT UNSIGNED  DEFAULT NULL, 
+
+  is_notice     TINYINT(1)   NOT NULL DEFAULT 0,
+  view_count    INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                 ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (post_id),
   KEY fk_boards_user (user_id),
   CONSTRAINT fk_boards_user
     FOREIGN KEY (user_id) REFERENCES users(user_id)
     ON DELETE CASCADE
 ) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_0900_ai_ci;
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
 
 -- 게시판 댓글(comments)
 -- 게시글(post_id)에 달린 댓글
