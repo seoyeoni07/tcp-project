@@ -2,28 +2,86 @@
 <html lang="ko">
 
 <head>
+   
   <meta charset="UTF-8">
-  <title>
-    <%= title %>
-  </title>
+    <title>
+        <%= title %>
+        </title>
 
+   
   <link rel="stylesheet" href="/css/style.css">
+   
   <link rel="stylesheet" href="/css/nav.css">
+
+  <!-- 채팅방 디자인-->
+  <style>
+    .room-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background-color 0.2s, border-left-color 0.2s;
+      font-size: 14px;
+    }
+
+    .room-item:hover {
+      background-color: #f7f7f7;
+    }
+
+    .room-item.active {
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      font-weight: bold;
+      color: #1976d2;
+    }
+
+    .unread-count {
+      background: #f44336 !important;
+      color: white;
+      border-radius: 50%;
+      width: 18px !important;
+      height: 18px !important;
+      font-size: 11px !important;
+      text-align: center;
+      line-height: 18px !important;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .room-item.empty {
+      text-align: center;
+      padding: 20px 8px;
+      color: #9e9e9e;
+      background-color: #ffffff;
+      border-bottom: none;
+      cursor: default;
+      font-weight: normal;
+    }
+
+    .room-item.empty:hover {
+      background-color: #ffffff;
+    }
+  </style>
 </head>
 
 <body>
-  <%- include('partials/nav', { title, user, active: 'chat' }) %>
+    <%- include('partials/nav', { title, user, active: 'chat' }) %>
 
     <div class="chat-wrap" style="display:flex; gap:16px; padding:16px;">
 
-      <aside style="width:220px; border:1px solid #ddd; padding:12px;">
+      <aside style="
+        width:220px; 
+        border:1px solid #ddd; 
+        padding:12px;
+        display: flex; 
+        flex-direction: column; 
+        height: 80vh;">
 
         <div style="margin-bottom:12px;">
           <h2 style="margin:0;">채팅방</h2>
 
           <div style="margin-top:6px;">
             <div style="font-size:13px; margin-bottom:4px; color:#555;">
-              1:1 대화 상대 선택
+               1:1 대화 상대 선택
             </div>
 
             <select id="user-select" style="width:100%; padding:4px;">
@@ -46,14 +104,14 @@
         <div style="margin-top:12px; border-top:1px dashed #eee; padding-top:12px;">
           <h3 style="margin:0 0 8px 0; font-size:16px;">그룹 채팅 참여자 선택</h3>
 
-          <input type="text" id="group-chat-name-input" placeholder="선택 사항: 그룹 채팅방 이름 입력"
+          <input type="text" id="group-chat-name-input" placeholder="선택 사항: 그룹 채팅방 이름 입력"            
             style="width:100%; padding:4px; margin-bottom:8px;" />
-          <div id="group-chat-participants"
+          <div id="group-chat-participants"            
             style="max-height:150px; overflow-y:auto; border:1px solid #ddd; padding:8px;">
             <% if (users && users.length> 0) { %>
               <% users.forEach(function (u) { %>
                 <div style="margin-bottom:4px; font-size:14px;">
-                  <input type="checkbox" id="user-group-<%= u.user_id %>" value="<%= u.user_id %>"
+                  <input type="checkbox" id="user-group-<%= u.user_id %>" value="<%= u.user_id %>"    
                     class="group-participant-checkbox">
                   <label for="user-group-<%= u.user_id %>">
                     <%= u.user_name %>
@@ -70,17 +128,24 @@
         </div>
 
         <ul id="room-list"
-          style="list-style:none; padding-left:0; margin:16px 0 0 0; border-top:1px dashed #eee; padding-top:12px;">
+        style="
+            list-style:none; 
+            padding-left:0; 
+            margin:16px 0 0 0; 
+            border-top:1px solid #ddd; 
+            padding-top:0;
+            flex: 1; 
+            overflow-y: auto;">
           <% if (rooms && rooms.length> 0) { %>
             <% rooms.forEach(function (room, idx) { %>
-              <li data-room-id="<%= room.room_id %>" data-room-type="<%= room.type %>"
+              <li data-room-id="<%= room.room_id %>" data-room-type="<%= room.type %>"                
                 class="room-item <%= idx === 0 ? 'active' : '' %>">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <% const displayName=room.other_name ? `${room.other_name} 님과의 채팅` : room.room_name; %>
                     <%= displayName %>
                       <% if (room.unread_count> 0) { %>
-                        <span class="unread-count"
-                          style="background:red; color:white; border-radius:50%; width:16px; height:16px; font-size:10px; text-align:center; line-height:16px;">
+                        <span class="unread-count"                          
+                          style="background:red; color:white; border-radius:50%; width:18px; height:18px; font-size:11px; text-align:center; line-height:18px; margin-left:8px; flex-shrink:0;">
                           <%= room.unread_count %>
                         </span>
                         <% } %>
@@ -93,40 +158,22 @@
                   </li>
                   <% } %>
         </ul>
+             
       </aside>
 
-      <main style="
-        flex:1;
-        border:1px solid #ddd;
-        padding:12px;
-        display:flex;
-        flex-direction:column;
-        height:80vh;">
+      <main style="flex:1; border:1px solid #ddd; padding:12px; display:flex; flex-direction:column; height:80vh;">
 
-        <header style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:8px;">
+        <header style="display:flex; flex-direction:column; margin-bottom:8px;">
 
-          <h2 style="margin:0;">채팅</h2>
-          <span>
-            <%= user && user.user_name ? user.user_name : "Guest" %>
-          </span>
+          <h2 id="chat-room-title" style="margin:0 0 4px 0;">채팅</h2>
+          <div id="participants-list" style="font-size:12px; color:#555;">
+            참여자: -
+          </div>
         </header>
 
-        <section id="messages" style="
-          flex:1;
-          overflow-y:auto;
-          border:1px solid #eee;
-          padding:8px;
-          margin-bottom:8px;">
+        <section id="messages" style="flex:1; overflow-y:auto; border:1px solid #eee;padding:8px; margin-bottom:8px;">
 
-          <div id="empty-message" style="
-            margin-top:40px;
-            text-align:center;
-            color:#999;
-            font-size:14px;">
+          <div id="empty-message" style="margin-top:40px; text-align:center; color:#999; font-size:14px;">
             채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.
           </div>
         </section>
@@ -136,18 +183,23 @@
 
           <button type="submit">전송</button>
         </form>
+             
       </main>
+         
     </div>
 
+       
     <script src="/socket.io/socket.io.js"></script>
 
+       
     <script>
       const form = document.getElementById("message-form");
       const input = document.getElementById("message-input");
       const messagesSection = document.getElementById("messages");
       const roomList = document.getElementById("room-list");
       const roomItems = document.querySelectorAll(".room-item");
-      const headerTitle = document.querySelector("main header h2");
+      const chatRoomTitle = document.getElementById("chat-room-title");
+      const participantsList = document.getElementById("participants-list");
 
       const userSelect = document.getElementById("user-select");
       const startChatBtn = document.getElementById("start-chat-btn");
@@ -185,9 +237,11 @@
         currentRoomId = activeRoom.dataset.roomId;
         currentRoomType = activeRoom.dataset.roomType;
         const roomText = activeRoom.querySelector('div').firstChild.textContent.trim();
-        headerTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+        chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+        fetchParticipants(currentRoomId);
       } else {
-        headerTitle.textContent = "채팅";
+        chatRoomTitle.textContent = "채팅";
+        participantsList.textContent = "채팅방을 선택하거나 생성하세요.";
       }
 
       const socket = io();
@@ -259,16 +313,42 @@
         currentRoomId = String(roomId);
         currentRoomType = roomType;
         const roomText = li.querySelector('div').firstChild.textContent.trim();
-        headerTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+        chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
 
         messagesSection.innerHTML = "";
         showEmptyMessage();
 
+        fetchParticipants(currentRoomId);
+
         socket.emit("join room", Number(currentRoomId));
+      }
+
+      //참여자 목록 호출
+      async function fetchParticipants(roomId) {
+        participantsList.textContent = "참여자: 불러오는 중...";
+        try {
+          const res = await fetch(`/chat/room/participants/${roomId}`);
+          if (!res.ok) throw new Error("참여자 목록 로드 실패");
+
+          const data = await res.json();
+
+          if (data.ok && data.participants) {
+            const names = data.participants.map(p => {
+              return p.user_id === Number(currentUserId) ? `${p.user_name} (나)` : p.user_name;
+            }).join(', ');
+            participantsList.textContent = `참여자 (${data.participants.length}명): ${names}`;
+          } else {
+            participantsList.textContent = "참여자: 정보를 가져올 수 없습니다.";
+          }
+        } catch (error) {
+          console.error("Error fetching participants:", error);
+          participantsList.textContent = "참여자: 오류 발생.";
+        }
       }
 
       function appendMessage(data) {
         if (data.room_id && String(data.room_id) !== String(currentRoomId)) {
+          // 새 메시지 알림
           return;
         }
 
@@ -295,9 +375,9 @@
         <div style="font-weight:bold; margin-bottom:4px;">${sender}</div>
         <div>${msgText}</div>
         <div style="font-size:10px; opacity:0.6; text-align:right; margin-top:4px;">
-          ${timestamp}
-        </div>
-      `;
+        ${timestamp}
+        </div> `;
+
         container.appendChild(item);
         messagesSection.appendChild(container);
 

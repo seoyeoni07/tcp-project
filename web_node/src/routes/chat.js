@@ -212,7 +212,8 @@ router.post("/group/start", requireLogin, async (req, res, next) => {
   }
 });
 
-router.get("/participants/:roomId", requireLogin, async (req, res, next) => {
+
+router.get("/room/participants/:roomId", requireLogin, async (req, res, next) => {
   const roomId = Number(req.params.roomId);
 
   if (Number.isNaN(roomId)) {
@@ -221,8 +222,7 @@ router.get("/participants/:roomId", requireLogin, async (req, res, next) => {
 
   try {
     const [participants] = await db.query(
-      `
-      SELECT u.user_name
+      `SELECT u.user_id, u.user_name
       FROM chat_participants cp
       JOIN users u ON u.user_id = cp.user_id
       WHERE cp.room_id = ?
@@ -233,7 +233,7 @@ router.get("/participants/:roomId", requireLogin, async (req, res, next) => {
 
     res.json({
       ok: true,
-      participants: participants.map(p => p.user_name),
+      participants: participants,
     });
   } catch (err) {
     next(err);
