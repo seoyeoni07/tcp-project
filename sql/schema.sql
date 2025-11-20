@@ -8,7 +8,10 @@ USE unistudyhub;
 CREATE TABLE IF NOT EXISTS users (
   user_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_name  VARCHAR(50)  NOT NULL,
+  department VARCHAR(50)  DEFAULT NULL,
+  position   VARCHAR(50)  DEFAULT NULL,
   email      VARCHAR(100) NOT NULL,
+  phone_number VARCHAR(20) DEFAULT NULL,
   password   VARCHAR(255) NOT NULL,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   role       ENUM('user','admin') DEFAULT 'user',

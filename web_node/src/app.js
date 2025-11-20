@@ -13,6 +13,8 @@ import boardRouter from "./routes/board.js";
 import chatRouter from "./routes/chat.js";
 import worklogRouter from "./routes/worklog.js";
 import meetingRouter from "./routes/meeting.js";
+import homeRouter from "./routes/home.js";
+import adminRouter from "./routes/admin.js";
 
 dotenv.config();
 
@@ -42,12 +44,20 @@ const sessionMiddleware = session({
   saveUninitialized: false,
 });
 app.use(sessionMiddleware);
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect("/");
+  }
+  next();
+}
 
 app.use("/", authRouter);
+app.use("/home", homeRouter);
 app.use("/board", boardRouter);
 app.use("/chat", chatRouter);
 app.use("/worklog", worklogRouter);
 app.use("/meeting", meetingRouter);
+app.use("/admin", adminRouter);
 
 io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);

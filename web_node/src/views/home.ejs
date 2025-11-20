@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= title %></title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+</head>
+<body>
+  <%- include("partials/nav", { title, user, active: "home" }) %>
+
+    <main class="home-wrap">
+
+    <section class="home-top">
+      <div class="home-header">
+        <p class="home-badge">팀 협업 대시보드</p>
+        <h1><%= user.user_name %>님, 오늘도 화이팅!</h1>
+
+        <% if (user && (user.department || user.position)) { %>
+          <p class="home-meta">
+            <%= user.department ? user.department + " " : "" %>
+            <%= user.position ? user.position : "" %>
+          </p>
+        <% } %>
+
+        <p class="home-sub">
+          필요한 기능을 한 곳에서 바로 이용할 수 있습니다.
+        </p>
+
+        <div class="home-actions">
+          <a href="/worklog/new" class="btn-main">오늘 업무일지 작성</a>
+          <a href="/meeting" class="btn-main btn-outline">회의실 현황 보기</a>
+        </div>
+      </div>
+
+      <aside class="home-profile">
+        <div class="home-profile-header">
+          <span class="home-profile-name"><%= user.user_name %></span>
+          <span class="home-profile-role">
+            <%= user.role === "admin" ? "관리자" : "일반 회원" %>
+          </span>
+        </div>
+
+        <div class="home-profile-row">
+          <span class="home-profile-label">성함 / 이메일</span>
+          <span class="home-profile-value"><%= user.email %></span>
+        </div>
+
+        <div class="home-profile-row">
+          <span class="home-profile-label">연락처</span>
+          <span class="home-profile-value">
+              <%= user.phone_number ? user.phone_number : '미등록' %>
+          </span>
+        </div>
+
+        <% if (user.department || user.position) { %>
+          <div class="home-profile-row">
+            <span class="home-profile-label">소속</span>
+            <span class="home-profile-value">
+              <%= user.department ? user.department + " " : "" %>
+              <%= user.position ? user.position : "" %>
+            </span>
+          </div>
+        <% } %>
+
+        <% if (typeof serviceDays !== "undefined") { %>
+          <div class="home-profile-row">
+            <span class="home-profile-label">서비스 이용</span>
+            <span class="home-profile-value"><%= serviceDays %>일차</span>
+          </div>
+        <% } %>
+      </aside>
+    </section>
+
+    <section class="home-section">
+      <h2 class="home-section-title">기능 바로가기</h2>
+
+      <div class="home-card-grid">
+
+        <% if (user.role === "admin") { %>
+          <a href="/admin/users" class="home-card">
+            <h3>회원 관리</h3>
+            <p>회원 정보를 조회하고 관리합니다.</p>
+          </a>
+        <% } %>
+
+        <a href="/chat" class="home-card">
+          <h3>채팅</h3>
+          <p>팀원들과 실시간으로 소통합니다.</p>
+        </a>
+
+        <a href="/worklog" class="home-card">
+          <h3>업무일지</h3>
+          <p>하루 업무 내용을 작성하고 기록합니다.</p>
+        </a>
+
+        <a href="/meeting" class="home-card">
+          <h3>회의실 예약</h3>
+          <p>회의실 예약 현황을 확인하고 예약합니다.</p>
+        </a>
+
+        <a href="/board" class="home-card">
+          <h3>게시판 / 공지</h3>
+          <p>공지사항 및 게시글을 확인합니다.</p>
+        </a>
+
+      </div>
+    </section>
+
+    <% if (typeof notices !== 'undefined' && notices.length > 0) { %>
+      <section class="home-notices">
+        <div class="home-notices-header">
+          <h2>최근 공지</h2>
+          <a href="/board" class="home-link">전체 보기</a>
+        </div>
+
+        <ul class="home-notices-list">
+          <% notices.forEach(n => { %>
+            <li>
+              <a
+                class="home-notice-title"
+                href="/board/<%= n.post_id %>"
+              >
+                <%= n.title %>
+              </a>
+              <span class="home-notice-date"><%= n.created_at %></span>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+  </main>
+
+  <style>
+    .home-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 60px 16px 40px; 
+      min-height: calc(100vh - 170px);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .home-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .home-header {
+      flex: 1;
+    }
+
+    .home-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: #e5f0ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .home-header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .home-meta {
+      margin: 0 0 10px;
+      color: #4b5563;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .home-main {
+      margin-top: 24px;
+    }
+
+    .home-sub {
+      margin: 0 0 16px;
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .home-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .home-profile {
+      min-width: 300px;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      margin-top: 50px;
+    }
+
+    .home-profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .home-profile-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .home-profile-role {
+      font-size: 12px;
+      padding: 2px 20px;
+      border-radius: 999px;
+      background: #e5f0ff;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .home-profile-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .home-profile-label {
+      color: #6b7280;
+    }
+
+    .home-profile-value {
+      color: #111827;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-all;
+    }
+
+    .home-stat-label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .home-stat-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #111;
+    }
+
+    .home-section-title {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .home-card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      gap: 20px;
+    }
+
+    .home-card {
+      display: block;
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: #fff;
+      height: 100px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: #333;
+      transition: box-shadow 0.15s ease, transform 0.15s ease;
+      font-size: 14px;
+      margin-top: -2px;
+    }
+
+    .home-card h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;   
+      overflow: hidden;          
+      text-overflow: ellipsis;
+    }
+
+    .home-card p {
+      margin: 3px 0 0;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;    
+      -webkit-box-orient: vertical;
+      }
+
+    .home-card:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .home-notices {
+      padding: 16px 18px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      margin-top: 45px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .home-admin {
+      margin-top: 32px;
+      padding: 16px;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+
+    .home-notices-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .home-link {
+      font-size: 13px;
+      color: #4b5563;
+      text-decoration: none;
+    }
+
+    .home-link:hover {
+      text-decoration: underline;
+    }
+
+    .home-notices-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .home-notices-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      padding: 14px 0;             
+    }
+
+    .home-notices-list li:first-child {
+      border-top: none;
+    }
+
+    .home-notice-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #111827;
+      text-decoration: none;
+    }
+
+    .home-notice-title:hover {
+      text-decoration: underline;
+    }
+
+    .home-notices-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center; 
+      padding: 6px 0;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .home-notice-date {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+  </style>
+</body>
+</html>

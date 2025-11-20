@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= title %></title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
+  <link rel="stylesheet" href="/css/board.css" />
+</head>
+<body>
+  <%- include("../partials/nav", { title, user, active: "admin" }) %>
+
+  <div class="board-wrap">
+    <div class="board-header">
+      <h1 class="board-title">회원 관리</h1>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="board-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>이름</th>
+            <th>이메일</th>
+            <th>부서</th>
+            <th>직급</th>
+            <th>연락처</th>
+            <th>권한</th>
+            <th>가입일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (users && users.length > 0) { %>
+            <% users.forEach(function(u) { %>
+              <tr>
+                <td><%= u.user_id %></td>
+                <td><%= u.user_name %></td>
+                <td><%= u.email %></td>
+                <td>
+                  <form method="post" action="/admin/users/<%= u.user_id %>/update">
+                    <input type="text" name="department" value="<%= u.department || '' %>" style="width:100px;">
+                </td>
+                <td>
+                    <input type="text" name="position" value="<%= u.position || '' %>" style="width:100px;">
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="phone_number"
+                    value="<%= u.phone_number || '' %>"
+                    style="width:120px;"
+                    placeholder="010-0000-0000"
+                  >
+              </td>
+                <td>
+                  <select name="role">
+                    <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
+                    <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>admin</option>
+                  </select>
+                </td>
+                <td><%= u.created_at.toISOString().slice(0,19).replace('T',' ') %></td>
+                <td>
+                    <button type="submit">저장</button>
+                  </form>
+
+                  <form method="post" action="/admin/users/<%= u.user_id %>/delete" style="margin-top:4px;">
+                    <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');">
+                      삭제
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="9" style="text-align:center;">등록된 회원이 없습니다.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

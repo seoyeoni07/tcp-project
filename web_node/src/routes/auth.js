@@ -13,7 +13,6 @@ router.get("/", (req, res) => {
   });
 });
 
-// 회원가입 페이지
 router.get("/signup", (req, res) => {
   res.render("signup", {
     title: "회원가입",
@@ -23,12 +22,12 @@ router.get("/signup", (req, res) => {
   });
 });
 
-// 회원가입
+// 회원가입 페이지
 router.post("/signup", async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, department, position } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !department || !position) {
       return res.status(400).render("signup", {
         title: "회원가입",
         active: "",
@@ -52,8 +51,8 @@ router.post("/signup", async (req, res, next) => {
     }
 
     await db.query(
-      "INSERT INTO users (user_name, email, password) VALUES (?, ?, ?)",
-      [username, email, password]
+      "INSERT INTO users (user_name, email, password, department, position) VALUES (?, ?, ?, ?, ?)",
+      [username, email, password, department, position]
     );
 
     return res.redirect("/");
@@ -77,7 +76,7 @@ router.post("/login", async (req, res, next) => {
 
     // 사용자 조회
     const [rows] = await db.query(
-      "SELECT user_id, user_name, email, password, role FROM users WHERE email = ?",
+      "SELECT user_id, user_name, email, password, role, department, position phone_number FROM users WHERE email = ?",
       [email]
     );
 
@@ -106,9 +105,12 @@ router.post("/login", async (req, res, next) => {
       user_name: userRow.user_name,
       email: userRow.email,
       role: userRow.role,
+      department: userRow.department,
+      position: userRow.position,
+      phone_number: userRow.phone_number,
     };
 
-    res.redirect("/chat");
+    res.redirect("/home");
   } catch (err) {
     next(err);
   }

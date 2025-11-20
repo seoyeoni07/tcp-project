@@ -60,13 +60,21 @@
     .room-item.empty:hover {
       background-color: #ffffff;
     }
+
+    .chat-wrap {
+      max-width: 1080px;
+      margin: 36px auto 16x;
+      padding: 0 16px;
+      display: flex;
+      gap: 16px;
+    }
   </style>
 </head>
 
 <body>
     <%- include('partials/nav', { title, user, active: 'chat' }) %>
 
-    <div class="chat-wrap" style="display:flex; gap:16px; padding:16px;">
+    <div class="chat-wrap">
 
       <aside style="
         width:220px; 

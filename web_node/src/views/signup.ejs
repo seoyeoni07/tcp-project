@@ -31,6 +31,7 @@
             required
           />
         </div>
+
         <div class="input-group">
           <label for="email">이메일</label>
           <input
@@ -41,6 +42,7 @@
             required
           />
         </div>
+
         <div class="input-group">
           <label for="password">비밀번호</label>
           <input
@@ -51,6 +53,44 @@
             required
           />
         </div>
+
+        <div class="input-group">
+          <label for="phone_number">연락처</label>
+          <input
+            type="text"
+            id="phone_number"
+            name="phone_number"
+            placeholder="010-1234-5678"
+          />
+        </div>
+
+        <!-- 부서 -->
+        <div class="input-group">
+          <label for="department">부서</label>
+          <select id="department" name="department" required>
+            <option value="">선택하세요</option>
+            <option value="개발팀">개발팀</option>
+            <option value="기획팀">기획팀</option>
+            <option value="디자인팀">디자인팀</option>
+            <option value="인사팀">인사팀</option>
+            <option value="영업팀">영업팀</option>
+          </select>
+        </div>
+
+        <!-- 직급 -->
+        <div class="input-group">
+          <label for="position">직급</label>
+          <select id="position" name="position" required>
+            <option value="">선택하세요</option>
+            <option value="사원">사원</option>
+            <option value="주임">주임</option>
+            <option value="대리">대리</option>
+            <option value="과장">과장</option>
+            <option value="팀장">팀장</option>
+            <option value="관리자">관리자</option>
+          </select>
+        </div>
+
         <button type="submit" class="login-button">회원가입</button>
       </form>
 

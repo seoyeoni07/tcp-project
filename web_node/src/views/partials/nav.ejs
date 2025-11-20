@@ -2,14 +2,18 @@
 
 <header class="nav">
   <div class="nav-left">
-    <a href="/chat" class="nav-logo">UniStudyHub</a>
+    <a href="/home" class="nav-logo">UniStudyHub</a>
   </div>
 
   <nav class="nav-menu">
+    <a href="/home" class="<%= active === 'home' ? 'active' : '' %>">홈</a>
     <a href="/chat" class="<%= active === 'chat' ? 'active' : '' %>">채팅</a>
     <a href="/worklog" class="<%= active === 'worklog' ? 'active' : '' %>">업무일지</a>
     <a href="/meeting" class="<%= active === 'meeting' ? 'active' : '' %>">회의실 예약</a>
     <a href="/board" class="<%= active === 'board' ? 'active' : '' %>">게시판</a>
+    <% if (isLoggedIn && user.role === 'admin') { %>
+    <a href="/admin/users" class="<%= active === 'admin' ? 'active' : '' %>">회원관리</a>
+  <% } %>
   </nav>
 
   <div class="nav-right">
