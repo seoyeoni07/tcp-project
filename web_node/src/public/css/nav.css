@@ -1,64 +1,179 @@
-/* Navigation 스타일 */
-.navbar {
-    background-color: #fff;
-    border-bottom: 1px solid #ddd;
-    padding: 0 20px;
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.navbar .page-title {
-    font-size: 1.5em;
-    color: #333;
-    font-weight: 600;
-}
-
-.navbar .menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 20px;
-}
-
-.navbar .menu a {
-    color: #555;
-    text-decoration: none;
-    font-size: 1em;
-    padding: 10px;
-    border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.navbar .menu a:hover,
-.navbar .menu a.active {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.right {
+.nav {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-end;
+  padding: 0 var(--spacing-xl);
+  height: 64px;
+  background-color: var(--bg-white);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  min-width: 1000px;
 }
 
-.right .user {
-  font-weight: 600;
-  margin-right: 8px;
+.nav-left {
+  display: flex;
+  align-items: center;
 }
 
-.right a {
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-}
-
-.right a.active {
+.nav-logo {
+  font-size: var(--text-4xl);
   font-weight: 700;
-  outline: 2px solid #e5e7eb;
+  color: var(--primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
+.nav-logo:hover {
+  color: var(--primary-hover);
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.nav-menu a {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.nav-menu a:hover {
+  background-color: var(--gray-50);
+  color: var(--text-primary);
+}
+
+.nav-menu a.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.nav-user {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nav-right a {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.nav-right a:hover {
+  background-color: var(--gray-50);
+  color: var(--text-primary);
+  border-color: var(--gray-300);
+}
+
+.status-dropdown {
+  position: relative;
+  margin-right: 12px;
+}
+
+.status-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  background: #e5e7eb;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background: #10b981;
+}
+
+.status-dot.meeting {
+  background: #3b82f6;
+}
+
+.status-dot.out {
+  background: #f59e0b;
+}
+
+.status-dot.offline {
+  background: #6b7280;
+}
+
+.status-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 140px;
+  display: none;
+  z-index: 1000;
+}
+
+.status-menu.show {
+  display: block;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+  transition: background 0.2s;
+}
+
+.status-option:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.status-option:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.status-option:hover {
+  background: #f9fafb;
+}

@@ -6,217 +6,203 @@
   <title>
     <%= title %> - <%= log.title %>
   </title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/nav.css">
-    <link rel="stylesheet" href="/css/board.css">
+  <link rel="stylesheet" href="/css/design-system.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/nav.css" />
   <style>
     body {
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f8f9fa;
-      color: #343a40;
-      line-height: 1.6;
+      background: var(--bg-page);
     }
 
-    .container.mt-5 {
-      max-width: 900px;
-      margin-top: 3rem !important;
-      margin-bottom: 3rem !important;
-      padding: 0 15px;
+    .worklog-detail-wrap {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 40px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
     }
 
-    h1 {
-      font-size: 2.2rem;
-      color: #212529;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid #e9ecef;
-      padding-bottom: 0.5rem;
+    .worklog-detail-wrap h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 28px 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .detail-card {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-      padding: 30px;
-      margin-bottom: 25px;
+      padding: 0;
+      margin-bottom: 24px;
     }
 
     .info-row {
       display: flex;
-      flex-wrap: wrap;
-      margin-bottom: 15px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
     .info-item {
       flex: 1;
-      min-width: 200px;
-      margin-right: 20px;
-      margin-bottom: 10px;
-    }
-
-    .info-item:last-child {
-      margin-right: 0;
     }
 
     .info-item label {
-      font-weight: 600;
-      color: #6c757d;
       display: block;
-      margin-bottom: 5px;
-      font-size: 0.95em;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
     }
 
     .info-item span {
-      font-size: 1.15em;
-      color: #343a40;
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
     }
 
     .info-item span.highlight {
-      font-weight: bold;
-      color: #007bff;
+      color: var(--primary);
+      font-weight: 600;
     }
 
     hr {
-      border-top: 1px solid #e9ecef;
-      margin: 25px 0;
+      border: none;
+      border-top: 1px solid var(--border-light);
+      margin: 24px 0;
     }
 
     .content-label {
-      font-weight: 600;
-      color: #6c757d;
-      margin-bottom: 10px;
       display: block;
-      font-size: 1.05em;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
     }
 
     .content-section {
-      margin-top: 10px;
-      padding: 20px;
-      border: 1px solid #dee2e6;
-      border-radius: 6px;
-      background-color: #f8f9fa;
+      padding: 16px;
+      background: var(--bg-gray);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
       white-space: pre-wrap;
+      line-height: 1.8;
       min-height: 100px;
-      overflow-x: auto;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .mt-4 {
+      margin-top: 24px;
     }
 
     .footer-meta {
       text-align: right;
-      color: #868e96;
-      font-size: 0.85em;
-      margin-top: 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
     }
 
-    .action-buttons {
+    .board-actions {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 30px;
-    }
-
-    @media (max-width:768px) {
-      .info-row {
-        flex-direction: column;
-      }
-
-      .info-item {
-        margin-right: 0;
-        margin-bottom: 15px;
-        min-width: unset;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .action-buttons .d-flex {
-        display: flex !important;
-        margin-top: 15px;
-        justify-content: space-around;
-      }
-
-      .action-buttons .d-flex .btn,
-      .action-buttons .d-flex form {
-        flex: 1;
-        margin: 0 5px;
-      }
-
-      .action-buttons .d-flex .btn.mr-2 {
-        margin-right: 5px !important;
-      }
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container mt-5">
-    <h1>
-      <%= log.title %>
-    </h1>
+  <%- include('../partials/nav', { title, user, active }) %>
+
+  <div class="worklog-detail-wrap">
+    <h1><%= log.title %></h1>
+
     <div class="detail-card">
       <div class="info-row">
-        <div class="info-item"><label>업무일</label><span>
-            <% let displayDate='N/A' ;if (log.work_date instanceof Date) {const date=log.work_date;const
-              userTimezoneOffset=date.getTimezoneOffset() * 60000;const kstDate=new Date(date.getTime() -
-              userTimezoneOffset);displayDate=kstDate.toISOString().split('T')[0];} else if (typeof
-              log.work_date==='string' ) {displayDate=log.work_date.substring(0, 10);} %>
-              <%= displayDate %>
-          </span></div>
-        <div class="info-item"><label>출근 / 퇴근</label><span>
-            <%= log.start_time %> ~ <%= log.end_time %>
-          </span></div>
-        <div class="info-item"><label>총 근무 시간</label><span class="highlight">
-            <% const workTime=log.work_time; if (workTime && typeof workTime==='string' && !workTime.includes('NaN')) {
-              %>
+        <div class="info-item">
+          <label>업무일</label>
+          <span>
+            <% let displayDate = 'N/A';
+            if (log.work_date instanceof Date) {
+              const date = log.work_date;
+              const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+              const kstDate = new Date(date.getTime() - userTimezoneOffset);
+              displayDate = kstDate.toISOString().split('T')[0];
+            } else if (typeof log.work_date === 'string') {
+              displayDate = log.work_date.substring(0, 10);
+            } %>
+            <%= displayDate %>
+          </span>
+        </div>
+        <div class="info-item">
+          <label>출근 / 퇴근</label>
+          <span><%= log.start_time %> ~ <%= log.end_time %></span>
+        </div>
+        <div class="info-item">
+          <label>총 근무 시간</label>
+          <span class="highlight">
+            <% const workTime = log.work_time;
+            if (workTime && typeof workTime === 'string' && !workTime.includes('NaN')) { %>
               <%= workTime %>
-                <% } else if (log.start_time && log.end_time) { %>계산 오류<% } else { %>퇴근 시간 미입력<% } %>
-          </span></div>
+            <% } else if (log.start_time && log.end_time) { %>
+              계산 오류
+            <% } else { %>
+              퇴근 시간 미입력
+            <% } %>
+          </span>
+        </div>
       </div>
+
       <div class="info-row">
-        <div class="info-item"><label>작성자</label><span>
-            <%= log.author_name %>
-          </span></div>
-        <div class="info-item"><label>부서명</label><span>
-            <%= log.department || '미지정' %>
-          </span></div>
-        <div class="info-item"><label>직위</label><span>
-            <%= log.position || '미지정' %>
-          </span></div>
+        <div class="info-item">
+          <label>작성자</label>
+          <span><%= log.author_name %></span>
+        </div>
+        <div class="info-item">
+          <label>부서명</label>
+          <span><%= log.department || '미지정' %></span>
+        </div>
+        <div class="info-item">
+          <label>직위</label>
+          <span><%= log.position || '미지정' %></span>
+        </div>
       </div>
+
       <hr>
-      <div><label class="content-label">진행 업무 / 특이사항</label>
-        <div class="content-section">
-          <%= log.content %>
-        </div>
+
+      <div>
+        <label class="content-label">진행 업무 / 특이사항</label>
+        <div class="content-section"><%= log.content %></div>
       </div>
-      <div class="mt-4"><label class="content-label">익일 업무 계획</label>
-        <div class="content-section">
-          <%= log.next_plan || '계획 없음' %>
-        </div>
+
+      <div class="mt-4">
+        <label class="content-label">익일 업무 계획</label>
+        <div class="content-section"><%= log.next_plan || '계획 없음' %></div>
       </div>
     </div>
-    <div class="footer-meta">등록일: <%= log.created_at_fmt %><br>수정일: <%= log.updated_at_fmt %>
+
+    <div class="footer-meta">
+      등록일: <%= log.created_at_fmt %><br>
+      수정일: <%= log.updated_at_fmt %>
     </div>
+
     <div class="board-actions">
-      <a href="/worklog" class="btn btn-light">목록</a>
-
-      <a href="/worklog/<%= log.log_id %>/edit" class="btn btn-primary">
-        수정
-      </a>
-
+      <a href="/worklog" class="btn btn-secondary">목록</a>
+      <a href="/worklog/<%= log.log_id %>/edit" class="btn btn-primary">수정</a>
       <form
         method="post"
         action="/worklog/<%= log.log_id %>/delete"
         style="display:inline;"
         onsubmit="return confirm('정말 삭제할까요?');"
       >
-        <button type="submit" class="btn btn-danger">
-          삭제
-        </button>
+        <button type="submit" class="btn btn-danger">삭제</button>
       </form>
     </div>
-</div>
   </div>
+
 </body>
 
 </html>

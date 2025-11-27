@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title><%= post.title %> - 게시판</title>
-
+  <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
-  <link rel="stylesheet" href="/css/board.css" />
 </head>
 
 <body>
@@ -67,5 +66,129 @@
       <% } %>
     </div>
   </div>
+
+  <style>
+    body {
+      background: var(--bg-page);
+    }
+
+    .board-wrap {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 40px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .post-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 16px 0;
+      line-height: 1.4;
+    }
+
+    .board-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+
+    .board-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .board-attachment {
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .board-attachment a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .board-attachment a:hover {
+      text-decoration: underline;
+    }
+
+    .board-content {
+      min-height: 300px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .board-content-text {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .board-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: white;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--text-tertiary);
+    }
+
+    .btn-light {
+      background: var(--bg-secondary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+  </style>
+</head>
 </body>
 </html>

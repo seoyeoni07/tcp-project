@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title><%= title %></title>
+  <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
-  <link rel="stylesheet" href="/css/board.css" />
 </head>
 
 <body>
@@ -56,5 +56,84 @@
       </div>
     </div>
   </div>
+
+  <style>
+    .meeting-form-page {
+      background: var(--bg-page);
+      min-height: calc(100vh - 60px);
+      padding: 40px 20px;
+    }
+
+    .board-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 32px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .board-header {
+      margin-bottom: 28px;
+    }
+
+    .board-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .error-message {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .meeting-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-row label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-row select,
+    .form-row input {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-row select:focus,
+    .form-row input:focus {
+      border-color: var(--primary);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
 </body>
 </html>
