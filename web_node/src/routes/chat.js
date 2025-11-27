@@ -230,7 +230,7 @@ router.get("/room/participants/:roomId", requireLogin, async (req, res, next) =>
 
   try {
     const [participants] = await db.query(
-      `SELECT u.user_id, u.user_name
+      `SELECT u.user_id, u.user_name, u.work_status
       FROM chat_participants cp
       JOIN users u ON u.user_id = cp.user_id
       WHERE cp.room_id = ?

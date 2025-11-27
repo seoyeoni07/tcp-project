@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-   
   <meta charset="UTF-8">
-    <title>
-        <%= title %>
-        </title>
+  <title>
+    <%= title %>
+  </title>
 
   <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
@@ -59,11 +58,11 @@
     }
 
     .chat-wrap {
-      max-width: 1080px;
+      max-width: 1200px;
       margin: 36px auto 16x;
       padding: 0 16px;
       display: flex;
-      gap: 16px;
+      gap: 8px;
     }
 
     .user-option {
@@ -111,69 +110,28 @@
 </head>
 
 <body>
-    <%- include('partials/nav', { title, user, active: 'chat' }) %>
+  <%- include('partials/nav', { title, user, active: 'chat' }) %>
 
-    <div class="chat-wrap">
+  <div class="chat-wrap">
 
-      <aside style="
-        width:350px; 
-        border:1px solid #ddd; 
-        padding:12px;
-        display: flex; 
-        flex-direction: column; 
-        height: 80vh;">
+    <aside style="
+      width:350px; 
+      border:1px solid #ddd; 
+      padding:12px;
+      display: flex; 
+      flex-direction: column; 
+      height: 80vh;">
 
-        <div style="margin-bottom:12px;">
-          <h2 style="margin:0;">채팅방</h2>
+      <div style="margin-bottom:12px;">
+        <h2 style="margin:0;">채팅방</h2>
 
-          <div style="margin-top:6px;">
-            <div style="font-size:13px; margin-bottom:4px; color:#555;">
-               1:1 대화 상대 선택
-            </div>
-
-            <select id="user-select" style="width:100%; padding:4px;">
-              <option value="">상대 선택...</option>
-              <% if (users && users.length> 0) { %>
-                <% users.forEach(function (u) { 
-                  const statusText = {
-                    'online': '출근중',
-                    'meeting': '회의중', 
-                    'out': '외근',
-                    'offline': '퇴근'
-                  };
-                  const status = statusText[u.work_status] || '알수없음';
-                  const statusIcon = u.work_status === 'offline' ? '○' : '●';
-                  
-                  // 부서·직급 표시 로직
-                  let deptInfo = '';
-                  if (u.department && u.position) {
-                    deptInfo = `[${u.department}·${u.position}] `;
-                  } else if (u.department) {
-                    deptInfo = `[${u.department}] `;
-                  } else if (u.position) {
-                    deptInfo = `[${u.position}] `;
-                  }
-                %>
-                  <option value="<%= u.user_id %>" data-status="<%= u.work_status %>">
-                    <%= statusIcon %> <%= u.user_name %> <%= deptInfo %>- <%= status %>
-                  </option>
-                    <% }) %>
-                <% } %>
-            </select>
-
-            <button id="start-chat-btn" style="margin-top:8px; width:100%; padding:10px; font-size:13px; background-color:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;">
-              선택한 사용자와 1:1 채팅 시작
-            </button>
+        <div style="margin-top:6px;">
+          <div style="font-size:13px; margin-bottom:4px; color:#555;">
+            1:1 대화 상대 선택
           </div>
-        </div>
 
-        <div style="margin-top:12px; border-top:1px dashed #eee; padding-top:12px;">
-          <h3 style="margin:0 0 8px 0; font-size:16px;">그룹 채팅 참여자 선택</h3>
-
-          <input type="text" id="group-chat-name-input" placeholder="선택 사항: 그룹 채팅방 이름 입력" 
-            style="width:100%; padding:4px; margin-bottom:8px;" />
-          <div id="group-chat-participants"
-            style="max-height:150px; overflow-y:auto; border:1px solid #ddd; padding:8px;">
+          <select id="user-select" style="width:100%; padding:4px;">
+            <option value="">상대 선택...</option>
             <% if (users && users.length> 0) { %>
               <% users.forEach(function (u) { 
                 const statusText = {
@@ -183,616 +141,698 @@
                   'offline': '퇴근'
                 };
                 const status = statusText[u.work_status] || '알수없음';
-                const statusClass = u.work_status || 'offline';
+                const statusIcon = u.work_status === 'offline' ? '○' : '●';
                 
                 // 부서·직급 표시 로직
                 let deptInfo = '';
                 if (u.department && u.position) {
-                  deptInfo = `[${u.department}·${u.position}]`;
+                  deptInfo = `[${u.department}·${u.position}] `;
                 } else if (u.department) {
-                  deptInfo = `[${u.department}]`;
+                  deptInfo = `[${u.department}] `;
                 } else if (u.position) {
-                  deptInfo = `[${u.position}]`;
+                  deptInfo = `[${u.position}] `;
                 }
               %>
-                <div style="margin-bottom:6px; font-size:13px; display:flex; align-items:center; gap:8px;">
-                  <input type="checkbox" id="user-group-<%= u.user_id %>" value="<%= u.user_id %>"    
-                    class="group-participant-checkbox">
-                  <label for="user-group-<%= u.user_id %>" style="display:flex; align-items:center; gap:6px; cursor:pointer; flex:1;">
-                    <span class="user-status-dot <%= statusClass %>"></span>
-                    <span style="font-weight:600;"><%= u.user_name %></span>
-                    <span style="color:#6b7280; font-size:12px;"><%= deptInfo %> <%= status %></span>
-                  </label>
-                </div>
-                <% }) %>
-                  <% } else { %>
-                    <div style="font-size:14px; color:#777;">추가할 사용자 없음</div>
-                    <% } %>
-          </div>
-          <button id="start-group-chat-btn" style="margin-top:8px; width:100%; padding:10px; font-size:13px; background-color:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; white-space:normal; line-height:1.3;">
-            그룹 채팅 시작
-          </button>
-          </div>
-
-        <ul id="room-list"
-        style="
-            list-style:none; 
-            padding-left:0; 
-            margin:16px 0 0 0; 
-            border-top:1px solid #ddd; 
-            padding-top:0;
-            flex: 1; 
-            overflow-y: auto;">
-          <% if (rooms && rooms.length> 0) { %>
-            <% rooms.forEach(function (room, idx) { %>
-              <li data-room-id="<%= room.room_id %>" data-room-type="<%= room.type %>" 
-                class="room-item <%= idx === 0 ? 'active' : '' %>">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <% const displayName=room.other_name ? `${room.other_name} 님과의 채팅` : room.room_name; %>
-                    <%= displayName %>
-                      <% if (room.unread_count> 0) { %>
-                        <span class="unread-count"
-                          style="background:red; color:white; border-radius:50%; width:18px; height:18px; font-size:11px; text-align:center; line-height:18px; margin-left:8px; flex-shrink:0;">
-                          <%= room.unread_count %>
-                        </span>
-                        <% } %>
-                </div>
-              </li>
+                <option value="<%= u.user_id %>" data-status="<%= u.work_status %>">
+                  <%= statusIcon %> <%= u.user_name %> <%= deptInfo %>- <%= status %>
+                </option>
               <% }) %>
-                <% } else { %>
-                  <li class="room-item empty">
-                    참여 중인 채팅방이 없습니다.
-                  </li>
-                  <% } %>
-        </ul>
-      </aside>
+            <% } %>
+          </select>
 
-      <main style="flex:1; border:1px solid #ddd; padding:12px; display:flex; flex-direction:column; height:80vh;">
+          <button id="start-chat-btn" style="margin-top:8px; width:100%; padding:10px; font-size:13px; background-color:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;">
+            선택한 사용자와 1:1 채팅 시작
+          </button>
+        </div>
+      </div>
 
-        <header style="display:flex; flex-direction:column; margin-bottom:8px;">
+      <div style="margin-top:12px; border-top:1px dashed #eee; padding-top:12px;">
+        <h3 style="margin:0 0 8px 0; font-size:16px;">그룹 채팅 참여자 선택</h3>
 
-          <h2 id="chat-room-title" style="margin:0 0 4px 0;">채팅</h2>
-          <div id="participants-list" style="font-size:12px; color:#555;">
-            참여자: -
-          </div>
+        <input type="text" id="group-chat-name-input" placeholder="선택 사항: 그룹 채팅방 이름 입력" 
+          style="width:100%; padding:4px; margin-bottom:8px;" />
+        <div id="group-chat-participants"
+          style="max-height:150px; overflow-y:auto; border:1px solid #ddd; padding:8px;">
+          <% if (users && users.length> 0) { %>
+            <% users.forEach(function (u) { 
+              const statusText = {
+                'online': '출근중',
+                'meeting': '회의중', 
+                'out': '외근',
+                'offline': '퇴근'
+              };
+              const status = statusText[u.work_status] || '알수없음';
+              const statusClass = u.work_status || 'offline';
+              
+              // 부서·직급 표시 로직
+              let deptInfo = '';
+              if (u.department && u.position) {
+                deptInfo = `[${u.department}·${u.position}]`;
+              } else if (u.department) {
+                deptInfo = `[${u.department}]`;
+              } else if (u.position) {
+                deptInfo = `[${u.position}]`;
+              }
+            %>
+              <div style="margin-bottom:6px; font-size:13px; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="user-group-<%= u.user_id %>" value="<%= u.user_id %>"    
+                  class="group-participant-checkbox">
+                <label for="user-group-<%= u.user_id %>" style="display:flex; align-items:center; gap:6px; cursor:pointer; flex:1;">
+                  <span class="user-status-dot <%= statusClass %>"></span>
+                  <span style="font-weight:600;"><%= u.user_name %></span>
+                  <span style="color:#6b7280; font-size:12px;"><%= deptInfo %> <%= status %></span>
+                </label>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div style="font-size:14px; color:#777;">추가할 사용자 없음</div>
+          <% } %>
+        </div>
+        <button id="start-group-chat-btn" style="margin-top:8px; width:100%; padding:10px; font-size:13px; background-color:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; white-space:normal; line-height:1.3;">
+          그룹 채팅 시작
+        </button>
+      </div>
+
+      <ul id="room-list"
+        style="
+          list-style:none; 
+          padding-left:0; 
+          margin:16px 0 0 0; 
+          border-top:1px solid #ddd; 
+          padding-top:0;
+          flex: 1; 
+          overflow-y: auto;">
+        <% if (rooms && rooms.length> 0) { %>
+          <% rooms.forEach(function (room, idx) { %>
+            <li data-room-id="<%= room.room_id %>" data-room-type="<%= room.type %>" 
+              class="room-item <%= idx === 0 ? 'active' : '' %>">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <% const displayName=room.other_name ? `${room.other_name} 님과의 채팅` : room.room_name; %>
+                <%= displayName %>
+                <% if (room.unread_count> 0) { %>
+                  <span class="unread-count"
+                    style="background:red; color:white; border-radius:50%; width:18px; height:18px; font-size:11px; text-align:center; line-height:18px; margin-left:8px; flex-shrink:0;">
+                    <%= room.unread_count %>
+                  </span>
+                <% } %>
+              </div>
+            </li>
+          <% }) %>
+        <% } else { %>
+          <li class="room-item empty">
+            참여 중인 채팅방이 없습니다.
+          </li>
+        <% } %>
+      </ul>
+    </aside>
+
+    <main style="flex:1; border:1px solid #ddd; padding:12px; display:flex; flex-direction:column; height:80vh;">
+
+      <header style="display:flex; flex-direction:column; margin-bottom:8px;">
+        <h2 id="chat-room-title" style="margin:0 0 4px 0;">채팅</h2>
         </header>
 
-        <section id="messages" style="flex:1; overflow-y:auto; border:1px solid #eee;padding:8px; margin-bottom:8px;">
+      <section id="messages" style="flex:1; overflow-y:auto; border:1px solid #eee;padding:8px; margin-bottom:8px;">
 
-          <div id="empty-message" style="margin-top:40px; text-align:center; color:#999; font-size:14px;">
-            채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.
-          </div>
-        </section>
+        <div id="empty-message" style="margin-top:40px; text-align:center; color:#999; font-size:14px;">
+          채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.
+        </div>
+      </section>
 
-        <form id="message-form" style="display:flex; gap:8px;">
-          <input type="text" id="message-input" placeholder="메시지를 입력하세요..." required style="flex:1; padding:6px;" />
+      <form id="message-form" style="display:flex; gap:8px;">
+        <input type="text" id="message-input" placeholder="메시지를 입력하세요..." required style="flex:1; padding:6px;" />
+        <button type="submit">전송</button>
+      </form>
+    </main>
+    
+    <aside id="participants-aside" style="
+      width:240px; 
+      border:1px solid #ddd; 
+      padding:12px;
+      display: flex; 
+      flex-direction: column; 
+      height: 80vh;
+      box-sizing: border-box;">
+      <h3 style="margin:0 0 12px 0; font-size:16px;">채팅방 참여자 (<span id="participant-count">0</span>)</h3>
+      <ul id="current-participants-list" style="list-style: none; padding: 0; margin: 0; overflow-y: auto;">
+        <li id="empty-participants" style="font-size:13px; color:#9e9e9e;">채팅방을 선택하세요.</li>
+      </ul>
+    </aside>
+  </div>
 
-          <button type="submit">전송</button>
-        </form>
-      </main>
-    </div>
+  <script src="/socket.io/socket.io.js"></script>
 
-    <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const form = document.getElementById("message-form");
+    const input = document.getElementById("message-input");
+    const messagesSection = document.getElementById("messages");
+    const roomList = document.getElementById("room-list");
+    const roomItems = document.querySelectorAll(".room-item");
+    const chatRoomTitle = document.getElementById("chat-room-title");
+    const participantsAside = document.getElementById("participants-aside");
+    const currentParticipantsListEl = document.getElementById("current-participants-list");
+    const participantCountEl = document.getElementById("participant-count");
 
-    <script>
-      const form = document.getElementById("message-form");
-      const input = document.getElementById("message-input");
-      const messagesSection = document.getElementById("messages");
-      const roomList = document.getElementById("room-list");
-      const roomItems = document.querySelectorAll(".room-item");
-      const chatRoomTitle = document.getElementById("chat-room-title");
-      const participantsList = document.getElementById("participants-list");
 
-      const userSelect = document.getElementById("user-select");
-      const startChatBtn = document.getElementById("start-chat-btn");
-      const startGroupChatBtn = document.getElementById("start-group-chat-btn");
-      const groupChatNameInput = document.getElementById("group-chat-name-input");
+    const userSelect = document.getElementById("user-select");
+    const startChatBtn = document.getElementById("start-chat-btn");
+    const startGroupChatBtn = document.getElementById("start-group-chat-btn");
+    const groupChatNameInput = document.getElementById("group-chat-name-input");
 
-      const currentUserId = "<%= user && user.user_id ? user.user_id : null %>";
-      const currentUserName = "<%= user && user.user_name ? user.user_name : '' %>";
+    const currentUserId = "<%= user && user.user_id ? user.user_id : null %>";
+    const currentUserName = "<%= user && user.user_name ? user.user_name : '' %>";
 
-      function makeDisplayTitle(roomText, roomType) {
-        if (!roomText) return "채팅";
+    function makeDisplayTitle(roomText, roomType) {
+      if (!roomText) return "채팅";
 
-        roomText = roomText.trim();
+      roomText = roomText.trim();
 
-        // 1:1 채팅방 이름 자동 설정
-        if (roomType === 'single' && roomText.includes("↔") && roomText.includes("1:1 채팅")) {
-          let parts = roomText.replace("1:1 채팅", "").split("↔").map(s => s.trim());
-          let other = parts.find(name => name !== currentUserName);
-          if (other) return `${other} 님과의 채팅`;
-        }
-
-        return roomText;
+      // 1:1 채팅방 이름 자동 설정
+      if (roomType === 'single' && roomText.includes("↔") && roomText.includes("1:1 채팅")) {
+        let parts = roomText.replace("1:1 채팅", "").split("↔").map(s => s.trim());
+        let other = parts.find(name => name !== currentUserName);
+        if (other) return `${other} 님과의 채팅`;
       }
 
-      let currentRoomId = null;
-      let currentRoomType = null;
+      return roomText;
+    }
 
-      let activeRoom = document.querySelector(".room-item.active");
-      if (!activeRoom && roomItems.length > 0) {
-        activeRoom = roomItems[0];
-        activeRoom.classList.add("active");
-      }
+    let currentRoomId = null;
+    let currentRoomType = null;
 
-      if (activeRoom && activeRoom.dataset.roomId) {
-        currentRoomId = activeRoom.dataset.roomId;
-        currentRoomType = activeRoom.dataset.roomType;
-        const roomText = activeRoom.querySelector('div').firstChild.textContent.trim();
-        chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
-        fetchParticipants(currentRoomId);
-      } else {
-        chatRoomTitle.textContent = "채팅";
-        participantsList.textContent = "채팅방을 선택하거나 생성하세요.";
-      }
+    let activeRoom = document.querySelector(".room-item.active");
+    if (!activeRoom && roomItems.length > 0) {
+      activeRoom = roomItems[0];
+      activeRoom.classList.add("active");
+    }
 
-      if (currentRoomId) {
-        socket.emit("join room", Number(currentRoomId));
-      }
+    if (activeRoom && activeRoom.dataset.roomId) {
+      currentRoomId = activeRoom.dataset.roomId;
+      currentRoomType = activeRoom.dataset.roomType;
+      const roomText = activeRoom.querySelector('div').firstChild.textContent.trim();
+      chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+      fetchParticipants(currentRoomId);
+    } else {
+      chatRoomTitle.textContent = "채팅";
+      participantCountEl.textContent = '0';
+      currentParticipantsListEl.innerHTML = '<li id="empty-participants" style="font-size:13px; color:#9e9e9e;">채팅방을 선택하세요.</li>';
+    }
 
-      function clearEmptyMessage() {
-        const empty = document.getElementById("empty-message");
-        if (empty) empty.remove();
-      }
+    if (currentRoomId) {
+      socket.emit("join room", Number(currentRoomId));
+    }
 
-      function showEmptyMessage() {
-        if (document.getElementById("empty-message")) return;
-        const div = document.createElement("div");
-        div.id = "empty-message";
-        div.style.marginTop = "40px";
-        div.style.textAlign = "center";
-        div.style.color = "#999";
-        div.style.fontSize = "14px";
-        div.textContent =
-          "채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.";
-        messagesSection.appendChild(div);
-      }
+    function clearEmptyMessage() {
+      const empty = document.getElementById("empty-message");
+      if (empty) empty.remove();
+    }
 
-      // 채팅방 목록에 새 채팅방 추가, 활성화
-      function activateRoom(roomId, roomName, roomType) {
-        document.querySelectorAll(".room-item").forEach((li) => {
-          li.classList.remove("active");
-        });
+    function showEmptyMessage() {
+      if (document.getElementById("empty-message")) return;
+      const div = document.createElement("div");
+      div.id = "empty-message";
+      div.style.marginTop = "40px";
+      div.style.textAlign = "center";
+      div.style.color = "#999";
+      div.style.fontSize = "14px";
+      div.textContent =
+        "채팅 내용이 없습니다. 아래 입력창에 메시지를 입력해 채팅을 시작해보세요.";
+      messagesSection.appendChild(div);
+    }
 
-        let li = document.querySelector(`.room-item[data-room-id="${roomId}"]`);
-
-        if (!li) {
-          li = document.createElement("li");
-          li.className = "room-item";
-          li.dataset.roomId = roomId;
-          li.dataset.roomType = roomType;
-
-          const div = document.createElement('div');
-          div.style.display = "flex";
-          div.style.justifyContent = "space-between";
-          div.style.alignItems = "center";
-
-          let displayName = roomName;
-          if (roomType === 'single') {
-            displayName = makeDisplayTitle(roomName, roomType);
-          }
-
-          div.innerHTML = displayName;
-
-          li.appendChild(div);
-
-          if (roomList.querySelector('.room-item.empty')) {
-            roomList.querySelector('.room-item.empty').remove();
-          }
-          roomList.prepend(li);
-        }
-
-        li.classList.add("active");
-
-        // 활성화 시 알람 제거
-        const unreadCountSpan = li.querySelector('.unread-count');
-        if (unreadCountSpan) {
-          unreadCountSpan.remove();
-        }
-
-        currentRoomId = String(roomId);
-        currentRoomType = roomType;
-        const roomText = li.querySelector('div').firstChild.textContent.trim();
-        chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
-
-        messagesSection.innerHTML = "";
-        showEmptyMessage();
-
-        fetchParticipants(currentRoomId);
-
-        socket.emit("join room", Number(currentRoomId));
-      }
-
-      // 현재 채팅방 참여자 정보 저장
-      let currentParticipants = [];
-
-      //참여자 목록 호출
-      async function fetchParticipants(roomId) {
-        participantsList.textContent = "참여자: 불러오는 중...";
-        try {
-          const res = await fetch(`/chat/room/participants/${roomId}`);
-          if (!res.ok) throw new Error("참여자 목록 로드 실패");
-
-          const data = await res.json();
-
-          if (data.ok && data.participants) {
-            currentParticipants = data.participants;
-            updateParticipantsDisplay();
-          } else {
-            participantsList.textContent = "참여자: 정보를 가져올 수 없습니다.";
-          }
-        } catch (error) {
-          console.error("Error fetching participants:", error);
-          participantsList.textContent = "참여자: 오류 발생.";
-        }
-      }
-
-
-      // 참여자 목록 표시 업데이트
-      function updateParticipantsDisplay() {
-        const statusText = {
-          'online': '출근중',
-          'meeting': '회의중',
-          'out': '외근',
-          'offline': '퇴근'
-        };
-
-        const statusIcon = {
-          'online': '●',
-          'meeting': '●',
-          'out': '●',
-          'offline': '○'
-        };
-
-        const names = currentParticipants.map(p => {
-          const workStatus = p.work_status || 'offline';
-          const icon = statusIcon[workStatus];
-          const status = statusText[workStatus];
-          const nameText = p.user_id === Number(currentUserId) ? `${p.user_name} (나)` : p.user_name;
-          return `${icon} ${nameText} - ${status}`;
-        }).join(', ');
-
-        participantsList.textContent = `참여자 (${currentParticipants.length}명): ${names}`;
-
-        // 1:1 채팅이고 상대방이 있으면 제목에도 상태 표시
-        if (currentRoomType === 'single' && currentParticipants.length === 2) {
-          const other = currentParticipants.find(p => p.user_id !== Number(currentUserId));
-          if (other) {
-            const workStatus = other.work_status || 'offline';
-            const icon = statusIcon[workStatus];
-            const status = statusText[workStatus];
-            chatRoomTitle.textContent = `${icon} ${other.user_name}님과의 채팅 - ${status}`;
-          }
-        }
-      }
-
-      function appendMessage(data) {
-        if (data.room_id && String(data.room_id) !== String(currentRoomId)) {
-          // 새 메시지 알림
-          return;
-        }
-
-        clearEmptyMessage();
-
-        const container = document.createElement("div");
-        container.classList.add("chat-message");
-
-        const item = document.createElement("div");
-        item.classList.add("message-bubble");
-        const isMyMessage = (data.user_id == currentUserId);
-
-        if (isMyMessage) {
-          container.classList.add("my-message");
-        } else {
-          container.classList.add("other-message");
-        }
-
-        const sender = isMyMessage ? "나" : data.user_name;
-        const msgText = data.message || "메시지 없음";
-        const timestamp = data.timestamp || "";
-
-        item.innerHTML = `
-        <div style="font-weight:bold; margin-bottom:4px;">${sender}</div>
-        <div>${msgText}</div>
-        <div style="font-size:10px; opacity:0.6; text-align:right; margin-top:4px;">
-        ${timestamp}
-        </div> `;
-
-        container.appendChild(item);
-        messagesSection.appendChild(container);
-
-        messagesSection.scrollTop = messagesSection.scrollHeight;
-
-        if (data.message_id) {
-          socket.emit("read message", data.message_id);
-        }
-      }
-
-      if (roomList) {
-        roomList.addEventListener("click", (e) => {
-          const li = e.target.closest(".room-item");
-          if (!li || !li.dataset.roomId) return;
-          if (li.classList.contains("empty")) return;
-
-          const newRoomId = li.dataset.roomId;
-          const newRoomType = li.dataset.roomType;
-          if (!newRoomId || newRoomId === currentRoomId) return;
-
-          const roomText = li.querySelector('div').firstChild.textContent.trim();
-          activateRoom(newRoomId, roomText, newRoomType);
-        });
-      }
-
-      if (startChatBtn) {
-        startChatBtn.addEventListener("click", async () => {
-          const otherId = userSelect.value;
-          if (!otherId) {
-            alert("대화 상대를 선택하세요.");
-            return;
-          }
-
-          try {
-            const res = await fetch("/chat/start", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ user_id: otherId }),
-            });
-
-            const data = await res.json();
-            if (!data.ok) {
-              alert(data.error || "채팅방 생성 중 오류가 발생했습니다.");
-              return;
-            }
-
-            const { room_id, room_name, type } = data.room;
-            activateRoom(room_id, room_name, type);
-          } catch (err) {
-            console.error(err);
-            alert("서버 통신 중 오류가 발생했습니다.");
-          }
-        });
-      }
-
-      // 그룹채팅
-      if (startGroupChatBtn) {
-        startGroupChatBtn.addEventListener("click", async () => {
-          const selectedIds = Array.from(document.querySelectorAll('.group-participant-checkbox:checked'))
-            .map(cb => Number(cb.value));
-
-          const groupChatName = groupChatNameInput.value.trim();
-
-          if (selectedIds.length === 0) {
-            alert("그룹 채팅에 참여할 사용자를 1명 이상 선택하세요.");
-            return;
-          }
-
-          // 1:1 그룹채팅 불가
-          const participantCount = selectedIds.length;
-          if (participantCount === 0 || participantCount === 1) {
-            alert("그룹 채팅은 2명 이상의 참여자(본인 제외)가 필요합니다.");
-            return;
-          }
-
-          try {
-            const res = await fetch("/chat/group/start", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ user_ids: selectedIds, room_name: groupChatName }),
-            });
-
-            const data = await res.json();
-            if (!data.ok) {
-              alert(data.error || "그룹 채팅방 생성 중 오류가 발생했습니다.");
-              return;
-            }
-
-            const { room_id, room_name, type } = data.room;
-            activateRoom(room_id, room_name, type);
-
-            groupChatNameInput.value = "";
-            document.querySelectorAll('.group-participant-checkbox:checked').forEach(cb => cb.checked = false);
-
-          } catch (err) {
-            console.error(err);
-            alert("서버 통신 중 오류가 발생했습니다.");
-          }
-        });
-      }
-
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        const message = input.value.trim();
-        if (!message || !currentRoomId) return;
-
-        socket.emit("chat message", {
-          room_id: currentRoomId,
-          message: message,
-        });
-
-        input.value = "";
+    // 채팅방 목록에 새 채팅방 추가, 활성화
+    function activateRoom(roomId, roomName, roomType) {
+      document.querySelectorAll(".room-item").forEach((li) => {
+        li.classList.remove("active");
       });
 
-      socket.on("clear messages", () => {
-        messagesSection.innerHTML = "";
-        showEmptyMessage();
-      });
+      let li = document.querySelector(`.room-item[data-room-id="${roomId}"]`);
 
-      socket.on("past message", (data) => {
-        appendMessage(data);
-      });
-
-      socket.on("chat message", (data) => {
-        appendMessage(data);
-      });
-
-      // 새 채팅방 알림
-      socket.on("new room created", (data) => {
-        if (document.querySelector(`.room-item[data-room-id="${data.room_id}"]`)) {
-          return;
-        }
-
-        let li = document.createElement("li");
+      if (!li) {
+        li = document.createElement("li");
         li.className = "room-item";
-        li.dataset.roomId = data.room_id;
-        li.dataset.roomType = data.type;
+        li.dataset.roomId = roomId;
+        li.dataset.roomType = roomType;
 
         const div = document.createElement('div');
         div.style.display = "flex";
         div.style.justifyContent = "space-between";
         div.style.alignItems = "center";
 
-        let displayName = data.room_name;
-        if (data.type === 'single' && data.other_name) {
-          displayName = `${data.other_name} 님과의 채팅`;
-        } else if (data.type === 'group') {
-          displayName = data.room_name;
+        let displayName = roomName;
+        if (roomType === 'single') {
+          displayName = makeDisplayTitle(roomName, roomType);
         }
 
         div.innerHTML = displayName;
+
         li.appendChild(div);
 
         if (roomList.querySelector('.room-item.empty')) {
           roomList.querySelector('.room-item.empty').remove();
         }
         roomList.prepend(li);
+      }
 
-        socket.emit("system message", `새로운 채팅방 '${displayName.trim()}'에 초대되었습니다.`);
+      li.classList.add("active");
+
+      // 활성화 시 알람 제거
+      const unreadCountSpan = li.querySelector('.unread-count');
+      if (unreadCountSpan) {
+        unreadCountSpan.remove();
+      }
+
+      currentRoomId = String(roomId);
+      currentRoomType = roomType;
+      const roomText = li.querySelector('div').firstChild.textContent.trim();
+      chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+
+      messagesSection.innerHTML = "";
+      showEmptyMessage();
+
+      fetchParticipants(currentRoomId);
+
+      socket.emit("join room", Number(currentRoomId));
+    }
+
+    // 현재 채팅방 참여자 정보 저장
+    let currentParticipants = [];
+
+    //참여자 목록 호출
+    async function fetchParticipants(roomId) {
+      participantCountEl.textContent = '0';
+      currentParticipantsListEl.innerHTML = '<li style="font-size:13px; color:#9e9e9e; padding:6px 0;">참여자: 불러오는 중...</li>';
+      try {
+        const res = await fetch(`/chat/room/participants/${roomId}`);
+        if (!res.ok) throw new Error("참여자 목록 로드 실패");
+
+        const data = await res.json();
+
+        if (data.ok && data.participants) {
+          currentParticipants = data.participants;
+          updateParticipantsDisplay();
+        } else {
+          currentParticipantsListEl.innerHTML = '<li style="font-size:13px; color:#9e9e9e; padding:6px 0;">참여자: 정보를 가져올 수 없습니다.</li>';
+        }
+      } catch (error) {
+        console.error("Error fetching participants:", error);
+        currentParticipantsListEl.innerHTML = '<li style="font-size:13px; color:#9e9e9e; padding:6px 0;">참여자: 오류 발생.</li>';
+      }
+    }
+
+
+    // 참여자 목록 표시 업데이트 (aside에 맞게 수정)
+    function updateParticipantsDisplay() {
+      const statusText = {
+        'online': '출근중',
+        'meeting': '회의중',
+        'out': '외근',
+        'offline': '퇴근'
+      };
+
+      const statusIcon = {
+        'online': '●',
+        'meeting': '●',
+        'out': '●',
+        'offline': '○'
+      };
+      
+      participantCountEl.textContent = currentParticipants.length;
+
+      const currentParticipantsHtml = currentParticipants.map(p => {
+        const workStatus = p.work_status || 'offline';
+        const status = statusText[workStatus];
+        const statusClass = workStatus; // CSS 클래스명 활용
+        const nameText = p.user_id === Number(currentUserId) ? `${p.user_name} (나)` : p.user_name;
+        
+        // 부서·직급 표시 로직
+        let deptInfo = '';
+        if (p.department && p.position) {
+          deptInfo = `[${p.department}·${p.position}]`;
+        } else if (p.department) {
+          deptInfo = `[${p.department}]`;
+        } else if (p.position) {
+          deptInfo = `[${p.position}]`;
+        }
+
+        // HTML 구조를 ul > li 로 변경하여 목록 표시
+        return `
+          <li style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom: 1px dashed #eee;">
+            <span class="user-status-dot ${statusClass}" style="flex-shrink: 0;"></span>
+            <div style="flex-grow:1; display:flex; flex-direction:column;">
+              <span style="font-weight:600; font-size:14px;">${nameText}</span>
+              <span style="color:#6b7280; font-size:11px;">${deptInfo} ${status}</span>
+            </div>
+          </li>
+        `;
+      }).join('');
+
+currentParticipantsListEl.innerHTML = currentParticipantsHtml;
+
+  // 1:1 채팅일때 제목에 상태표시 x
+  if (currentRoomType === 'single' && currentParticipants.length === 2) {
+    const other = currentParticipants.find(p => p.user_id !== Number(currentUserId));
+    if (other) {
+      chatRoomTitle.textContent = `${other.user_name}님과의 채팅`; 
+    }
+  } else {
+    // 그룹 채팅이거나 참여자가 2명이 아닌 경우, 원래 채팅방 이름으로 되돌림
+    const activeLi = document.querySelector(".room-item.active");
+    if (activeLi) {
+        const roomText = activeLi.querySelector('div').firstChild.textContent.trim();
+        chatRoomTitle.textContent = makeDisplayTitle(roomText, currentRoomType);
+    }
+  }
+}
+
+    function appendMessage(data) {
+      if (data.room_id && String(data.room_id) !== String(currentRoomId)) {
+        // 새 메시지 알림
+        return;
+      }
+
+      clearEmptyMessage();
+
+      const container = document.createElement("div");
+      container.classList.add("chat-message");
+
+      const item = document.createElement("div");
+      item.classList.add("message-bubble");
+      const isMyMessage = (data.user_id == currentUserId);
+
+      if (isMyMessage) {
+        container.classList.add("my-message");
+      } else {
+        container.classList.add("other-message");
+      }
+
+      const sender = isMyMessage ? "나" : data.user_name;
+      const msgText = data.message || "메시지 없음";
+      const timestamp = data.timestamp || "";
+
+      item.innerHTML = `
+        <div style="font-weight:bold; margin-bottom:4px;">${sender}</div>
+        <div>${msgText}</div>
+        <div style="font-size:10px; opacity:0.6; text-align:right; margin-top:4px;">
+        ${timestamp}
+        </div> `;
+
+      container.appendChild(item);
+      messagesSection.appendChild(container);
+
+      messagesSection.scrollTop = messagesSection.scrollHeight;
+
+      if (data.message_id) {
+        socket.emit("read message", data.message_id);
+      }
+    }
+
+    if (roomList) {
+      roomList.addEventListener("click", (e) => {
+        const li = e.target.closest(".room-item");
+        if (!li || !li.dataset.roomId) return;
+        if (li.classList.contains("empty")) return;
+
+        const newRoomId = li.dataset.roomId;
+        const newRoomType = li.dataset.roomType;
+        if (!newRoomId || newRoomId === currentRoomId) return;
+
+        const roomText = li.querySelector('div').firstChild.textContent.trim();
+        activateRoom(newRoomId, roomText, newRoomType);
       });
+    }
 
-      // 메세지 표시 (빨간점)
-      socket.on("new message notification", (data) => {
-        if (data.room_id && String(data.room_id) === String(currentRoomId)) {
+    if (startChatBtn) {
+      startChatBtn.addEventListener("click", async () => {
+        const otherId = userSelect.value;
+        if (!otherId) {
+          alert("대화 상대를 선택하세요.");
           return;
         }
 
-        const li = document.querySelector(`.room-item[data-room-id="${data.room_id}"]`);
-        if (!li) return;
+        try {
+          const res = await fetch("/chat/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: otherId }),
+          });
 
-        let unreadCountSpan = li.querySelector('.unread-count');
+          const data = await res.json();
+          if (!data.ok) {
+            alert(data.error || "채팅방 생성 중 오류가 발생했습니다.");
+            return;
+          }
 
-        let currentCount = unreadCountSpan ? Number(unreadCountSpan.textContent) : 0;
-        currentCount++;
-
-        if (!unreadCountSpan) {
-          unreadCountSpan = document.createElement('span');
-          unreadCountSpan.className = 'unread-count';
-          unreadCountSpan.style.cssText = "background:red; color:white; border-radius:50%; width:16px; height:16px; font-size:10px; text-align:center; line-height:16px;";
-          li.querySelector('div').appendChild(unreadCountSpan);
+          const { room_id, room_name, type } = data.room;
+          activateRoom(room_id, room_name, type);
+        } catch (err) {
+          console.error(err);
+          alert("서버 통신 중 오류가 발생했습니다.");
         }
-        unreadCountSpan.textContent = currentCount;
+      });
+    }
+
+    // 그룹채팅
+    if (startGroupChatBtn) {
+      startGroupChatBtn.addEventListener("click", async () => {
+        const selectedIds = Array.from(document.querySelectorAll('.group-participant-checkbox:checked'))
+          .map(cb => Number(cb.value));
+
+        const groupChatName = groupChatNameInput.value.trim();
+
+        if (selectedIds.length === 0) {
+          alert("그룹 채팅에 참여할 사용자를 1명 이상 선택하세요.");
+          return;
+        }
+
+        // 1:1 그룹채팅 불가 (본인 포함 시 최소 3명 이상)
+        const participantCount = selectedIds.length;
+        if (participantCount === 0 || participantCount === 1) {
+          alert("그룹 채팅은 2명 이상의 참여자(본인 제외)가 필요합니다.");
+          return;
+        }
+
+        try {
+          const res = await fetch("/chat/group/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_ids: selectedIds, room_name: groupChatName }),
+          });
+
+          const data = await res.json();
+          if (!data.ok) {
+            alert(data.error || "그룹 채팅방 생성 중 오류가 발생했습니다.");
+            return;
+          }
+
+          const { room_id, room_name, type } = data.room;
+          activateRoom(room_id, room_name, type);
+
+          groupChatNameInput.value = "";
+          document.querySelectorAll('.group-participant-checkbox:checked').forEach(cb => cb.checked = false);
+
+        } catch (err) {
+          console.error(err);
+          alert("서버 통신 중 오류가 발생했습니다.");
+        }
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const message = input.value.trim();
+      if (!message || !currentRoomId) return;
+
+      socket.emit("chat message", {
+        room_id: currentRoomId,
+        message: message,
       });
 
-      socket.on("system message", (msg) => {
-        clearEmptyMessage();
+      input.value = "";
+    });
 
-        const item = document.createElement("div");
-        item.textContent = `[시스템] ${msg}`;
-        item.style.color = "gray";
-        item.style.fontSize = "12px";
-        messagesSection.appendChild(item);
+    socket.on("clear messages", () => {
+      messagesSection.innerHTML = "";
+      showEmptyMessage();
+    });
 
-        messagesSection.scrollTop = messagesSection.scrollHeight;
+    socket.on("past message", (data) => {
+      appendMessage(data);
+    });
+
+    socket.on("chat message", (data) => {
+      appendMessage(data);
+    });
+
+    // 새 채팅방 알림
+    socket.on("new room created", (data) => {
+      if (document.querySelector(`.room-item[data-room-id="${data.room_id}"]`)) {
+        return;
+      }
+
+      let li = document.createElement("li");
+      li.className = "room-item";
+      li.dataset.roomId = data.room_id;
+      li.dataset.roomType = data.type;
+
+      const div = document.createElement('div');
+      div.style.display = "flex";
+      div.style.justifyContent = "space-between";
+      div.style.alignItems = "center";
+
+      let displayName = data.room_name;
+      if (data.type === 'single' && data.other_name) {
+        displayName = `${data.other_name} 님과의 채팅`;
+      } else if (data.type === 'group') {
+        displayName = data.room_name;
+      }
+
+      div.innerHTML = displayName;
+      li.appendChild(div);
+
+      if (roomList.querySelector('.room-item.empty')) {
+        roomList.querySelector('.room-item.empty').remove();
+      }
+      roomList.prepend(li);
+
+      socket.emit("system message", `새로운 채팅방 '${displayName.trim()}'에 초대되었습니다.`);
+    });
+
+    // 메세지 표시 (빨간점)
+    socket.on("new message notification", (data) => {
+      if (data.room_id && String(data.room_id) === String(currentRoomId)) {
+        return;
+      }
+
+      const li = document.querySelector(`.room-item[data-room-id="${data.room_id}"]`);
+      if (!li) return;
+
+      let unreadCountSpan = li.querySelector('.unread-count');
+
+      let currentCount = unreadCountSpan ? Number(unreadCountSpan.textContent) : 0;
+      currentCount++;
+
+      if (!unreadCountSpan) {
+        unreadCountSpan = document.createElement('span');
+        unreadCountSpan.className = 'unread-count';
+        unreadCountSpan.style.cssText = "background:red; color:white; border-radius:50%; width:16px; height:16px; font-size:10px; text-align:center; line-height:16px;";
+        li.querySelector('div').appendChild(unreadCountSpan);
+      }
+      unreadCountSpan.textContent = currentCount;
+    });
+
+    socket.on("system message", (msg) => {
+      clearEmptyMessage();
+
+      const item = document.createElement("div");
+      item.textContent = `[시스템] ${msg}`;
+      item.style.color = "gray";
+      item.style.fontSize = "12px";
+      messagesSection.appendChild(item);
+
+      messagesSection.scrollTop = messagesSection.scrollHeight;
+    });
+
+    // 실시간 상태 업데이트
+    socket.on('status-updated', (data) => {
+      if (!data.users) return;
+
+      const statusText = {
+        'online': '출근중',
+        'meeting': '회의중',
+        'out': '외근',
+        'offline': '퇴근'
+      };
+
+      const sortedUsers = data.users.sort((a, b) => {
+        const statusOrder = { 'online': 1, 'meeting': 2, 'out': 3, 'offline': 4 };
+        return (statusOrder[a.work_status] || 5) - (statusOrder[b.work_status] || 5);
       });
 
-      // 실시간 상태 업데이트
-      socket.on('status-updated', (data) => {
-        if (!data.users) return;
+      // 1:1 채팅 사용자 선택 업데이트
+      const userSelectEl = document.getElementById('user-select');
+      if (userSelectEl) {
+        const currentValue = userSelectEl.value;
+        userSelectEl.innerHTML = '<option value="">상대 선택...</option>';
 
-        const statusText = {
-          'online': '출근중',
-          'meeting': '회의중',
-          'out': '외근',
-          'offline': '퇴근'
-        };
+        sortedUsers.forEach(u => {
+          const workStatus = u.work_status || 'offline';
+          const status = statusText[workStatus];
+          const statusIcon = workStatus === 'offline' ? '○' : '●';
 
-        const sortedUsers = data.users.sort((a, b) => {
-          const statusOrder = { 'online': 1, 'meeting': 2, 'out': 3, 'offline': 4 };
-          return (statusOrder[a.work_status] || 5) - (statusOrder[b.work_status] || 5);
+          let deptInfo = '';
+          if (u.department && u.position) {
+            deptInfo = `[${u.department}·${u.position}] `;
+          } else if (u.department) {
+            deptInfo = `[${u.department}] `;
+          } else if (u.position) {
+            deptInfo = `[${u.position}] `;
+          }
+
+          const option = document.createElement('option');
+          option.value = u.user_id;
+          option.textContent = `${statusIcon} ${u.user_name} ${deptInfo}- ${status}`;
+          option.setAttribute('data-status', workStatus);
+          userSelectEl.appendChild(option);
         });
 
-        // 1:1 채팅 사용자 선택 업데이트
-        const userSelectEl = document.getElementById('user-select');
-        if (userSelectEl) {
-          const currentValue = userSelectEl.value;
-          userSelectEl.innerHTML = '<option value="">상대 선택...</option>';
+        userSelectEl.value = currentValue;
+      }
 
-          sortedUsers.forEach(u => {
-            const workStatus = u.work_status || 'offline';
-            const status = statusText[workStatus];
-            const statusIcon = workStatus === 'offline' ? '○' : '●';
-
-            let deptInfo = '';
-            if (u.department && u.position) {
-              deptInfo = `[${u.department}·${u.position}] `;
-            } else if (u.department) {
-              deptInfo = `[${u.department}] `;
-            } else if (u.position) {
-              deptInfo = `[${u.position}] `;
-            }
-
-            const option = document.createElement('option');
-            option.value = u.user_id;
-            option.textContent = `${statusIcon} ${u.user_name} ${deptInfo}- ${status}`;
-            option.setAttribute('data-status', workStatus);
-            userSelectEl.appendChild(option);
-          });
-
-          userSelectEl.value = currentValue;
-        }
-
-        // 그룹 채팅 참여자 목록 업데이트
-        const groupParticipantsEl = document.getElementById('group-chat-participants');
-        if (groupParticipantsEl) {
-          // 현재 체크 상태 저장
-          const checkboxes = {};
-          document.querySelectorAll('.group-participant-checkbox').forEach(cb => {
-            checkboxes[cb.value] = cb.checked;
-          });
+      // 그룹 채팅 참여자 목록 업데이트
+      const groupParticipantsEl = document.getElementById('group-chat-participants');
+      if (groupParticipantsEl) {
+        // 현재 체크 상태 저장
+        const checkboxes = {};
+        document.querySelectorAll('.group-participant-checkbox').forEach(cb => {
+          checkboxes[cb.value] = cb.checked;
+        });
 
 
-          groupParticipantsEl.innerHTML = sortedUsers.map(u => {
-            const workStatus = u.work_status || 'offline';
-            const status = statusText[workStatus];
-            const statusClass = workStatus;
-            const isChecked = checkboxes[u.user_id] ? 'checked' : '';
+        groupParticipantsEl.innerHTML = sortedUsers.map(u => {
+          const workStatus = u.work_status || 'offline';
+          const status = statusText[workStatus];
+          const statusClass = workStatus;
+          const isChecked = checkboxes[u.user_id] ? 'checked' : '';
 
-            let deptInfo = '';
-            if (u.department && u.position) {
-              deptInfo = `[${u.department}·${u.position}]`;
-            } else if (u.department) {
-              deptInfo = `[${u.department}]`;
-            } else if (u.position) {
-              deptInfo = `[${u.position}]`;
-            }
+          let deptInfo = '';
+          if (u.department && u.position) {
+            deptInfo = `[${u.department}·${u.position}]`;
+          } else if (u.department) {
+            deptInfo = `[${u.department}]`;
+          } else if (u.position) {
+            deptInfo = `[${u.position}]`;
+          }
 
-            return `
-              <div style="margin-bottom:6px; font-size:13px; display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="user-group-${u.user_id}" value="${u.user_id}" 
-                  class="group-participant-checkbox" ${isChecked}>
-                <label for="user-group-${u.user_id}" style="display:flex; align-items:center; gap:6px; cursor:pointer; flex:1;">
-                  <span class="user-status-dot ${statusClass}"></span>
-                  <span style="font-weight:600;">${u.user_name}</span>
-                  <span style="color:#6b7280; font-size:12px;">${deptInfo} ${status}</span>
-                </label>
-              </div>
-            `;
-          }).join('');
-        }
+          return `
+            <div style="margin-bottom:6px; font-size:13px; display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="user-group-${u.user_id}" value="${u.user_id}" 
+                class="group-participant-checkbox" ${isChecked}>
+              <label for="user-group-${u.user_id}" style="display:flex; align-items:center; gap:6px; cursor:pointer; flex:1;">
+                <span class="user-status-dot ${statusClass}"></span>
+                <span style="font-weight:600;">${u.user_name}</span>
+                <span style="color:#6b7280; font-size:12px;">${deptInfo} ${status}</span>
+              </label>
+            </div>
+          `;
+        }).join('');
+      }
 
-        if (currentRoomId && currentParticipants.length > 0) {
-          currentParticipants = currentParticipants.map(p => {
-            const updated = data.users.find(u => u.user_id === p.user_id);
-            if (updated) {
-              return { ...p, work_status: updated.work_status };
-            }
-            return p;
-          });
-          updateParticipantsDisplay();
-        }
-      });
+      // 현재 채팅방 참여자 목록 업데이트
+      if (currentRoomId && currentParticipants.length > 0) {
+        currentParticipants = currentParticipants.map(p => {
+          const updated = data.users.find(u => u.user_id === p.user_id);
+          if (updated) {
+            return { ...p, work_status: updated.work_status };
+          }
+          return p;
+        });
+        updateParticipantsDisplay();
+      }
+    });
 
-    </script>
+  </script>
 </body>
 
 </html>

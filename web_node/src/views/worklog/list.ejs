@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
 
   <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
 
-    <style>
+  <style>
     .board-wrap {
       max-width: 1000px;
       margin: 0 auto;
@@ -89,6 +92,7 @@
     .calendar-table th:first-child {
       color: #ef4444;
     }
+
     .calendar-table th:last-child {
       color: #1d4ed8;
     }
@@ -133,108 +137,129 @@
     .cal-empty {
       background-color: #fafafa;
     }
+
+    /* 오늘 날짜 강조 */
+    .calendar-table td.today {
+
+      background-color: #e6f7ff;
+      border: 2px solid #1890ff;
+    }
+
+    /* 오늘 날짜 텍스트 강조 */
+    .calendar-table td.today .cal-date {
+      color: #1890ff;
+      font-weight: 700;
+      padding: 2px 4px;
+      background-color: #cce0ff;
+      border-radius: 4px;
+      display: inline-block;
+    }
   </style>
 </head>
+
 <body>
   <%- include('../partials/nav', { title, user, active }) %>
 
     <div class="board-wrap">
-    <div class="board-header">
-      <h1 class="board-title">업무일지</h1>
+      <div class="board-header">
+        <h1 class="board-title">업무일지</h1>
 
-      <div class="board-header-right">
-        <form method="get" action="/worklog" class="meeting-nav-form">
-          <input type="hidden" name="year" value="<%= year %>">
-          <input type="hidden" name="month" value="<%= month %>">
+        <div class="board-header-right">
+          <form method="get" action="/worklog" class="meeting-nav-form">
+            <input type="hidden" name="year" value="<%= year %>">
+            <input type="hidden" name="month" value="<%= month %>">
 
-          <button type="submit"
-                  name="prev"
-                  value="1"
-                  class="btn btn-secondary btn-sm">
-            ◀
-          </button>
+            <button type="submit" name="prev" value="1" class="btn btn-secondary btn-sm">
+              ◀
+            </button>
 
-          <span class="meeting-month-label">
-            <%= year %>년 <%= month %>월
-          </span>
+            <span class="meeting-month-label">
+              <%= year %>년 <%= month %>월
+            </span>
 
-          <button type="submit"
-                  name="next"
-                  value="1"
-                  class="btn btn-secondary btn-sm">
-            ▶
-          </button>
+            <button type="submit" name="next" value="1" class="btn btn-secondary btn-sm">
+              ▶
+            </button>
 
-          <a href="/worklog"
-             class="btn btn-primary btn-sm meeting-today-btn">
-            오늘
-          </a>
-        </form>
+            <a href="/worklog" class="btn btn-primary btn-sm meeting-today-btn">
+              오늘
+            </a>
+          </form>
+        </div>
+      </div>
+
+      <div class="calendar-wrap">
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th>일</th>
+              <th>월</th>
+              <th>화</th>
+              <th>수</th>
+              <th>목</th>
+              <th>금</th>
+              <th>토</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% var today   = new Date();
+            var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            var firstDate=new Date(year, month - 1, 1);
+            var firstDay=firstDate.getDay();
+            var lastDate=new Date(year,
+              month, 0).getDate();
+              var day=1 - firstDay;
+              for (var week=0; week < 6; week++)
+              { %>
+              <tr>
+                <% for (var d=0; d < 7; d++, day++) {
+                  var valid=(day>= 1 && day <= lastDate);
+                  var yyyy=String(year);
+                  var mm=String(month);
+                  if (mm.length===1) mm='0' + mm;
+                  var dd=String(day);
+                  if (dd.length===1) dd='0' + dd;
+                  var key=valid ? (yyyy + '-' + mm + '-' + dd) : null;
+                  var items=valid ? (logsByDate[key] || []) : [];
+                  var isToday = valid && (key === todayKey);
+                  var classList = valid ? 'cal-cell' : 'cal-empty';
+                  if (isToday) {
+                    classList += ' today';
+                    }
+                  %>
+                    <td class="<%= classList %>" data-date="<%= key %>">
+                      <% if (valid) { %>
+                        <div class="cal-date">
+                          <%= day %>
+                        </div>
+                        <div class="cal-badges">
+                          <% if (items.length> 0) { %>
+                            <% if (user.role==='admin' ) { %>
+                              <a href="/worklog/day/<%= key %>" class="cal-item"
+                                style="background-color:#007bff; text-align:center;">
+                                <%= items.length %>건 조회하기
+                              </a>
+                              <% } else { %>
+                                <a href="/worklog/<%= items[0].log_id %>" class="cal-item"
+                                  title="<%= items[0].work_time ? '근무 시간: ' + items[0].work_time : '' %>">
+                                  <%= items[0].title %>
+                                </a>
+                                <% } %>
+                                  <% } else { %>
+                                    <a href="/worklog/new?date=<%= key %>" class="cal-empty-text">
+                                      + 작성하기
+                                    </a>
+                                    <% } %>
+                        </div>
+                        <% } %>
+                    </td>
+                    <% } %>
+              </tr>
+              <% } %>
+          </tbody>
+        </table>
       </div>
     </div>
-
-    <div class="calendar-wrap">
-      <table class="calendar-table">
-        <thead>
-          <tr>
-            <th>일</th>
-            <th>월</th>
-            <th>화</th>
-            <th>수</th>
-            <th>목</th>
-            <th>금</th>
-            <th>토</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% 
-          var firstDate = new Date(year, month - 1, 1);
-          var firstDay  = firstDate.getDay();
-          var lastDate  = new Date(year, month, 0).getDate();
-          var day       = 1 - firstDay;
-
-          for (var week = 0; week < 6; week++) { 
-          %>
-            <tr>
-              <% 
-              for (var d = 0; d < 7; d++, day++) {
-                var valid = (day >= 1 && day <= lastDate);
-                var yyyy  = String(year);
-                var mm    = String(month); if (mm.length === 1) mm = '0' + mm;
-                var dd    = String(day);   if (dd.length === 1) dd = '0' + dd;
-                var key   = valid ? (yyyy + '-' + mm + '-' + dd) : null;
-                var items = valid ? (logsByDate[key] || []) : [];
-              %>
-                <td class="<%= valid ? 'cal-cell' : 'cal-empty' %>" data-date="<%= key %>">
-                  <% if (valid) { %>
-                    <div class="cal-date"><%= day %></div>
-                    <div class="cal-badges">
-                      <% if (items.length > 0) { %>
-                        <% if (user.role === 'admin') { %>
-                          <a href="/worklog/day/<%= key %>" class="cal-item"
-                             style="background-color:#007bff; text-align:center;">
-                            <%= items.length %>건 조회하기
-                          </a>
-                        <% } else { %>
-                          <a href="/worklog/<%= items[0].log_id %>" class="cal-item"
-                             title="<%= items[0].work_time ? '근무 시간: ' + items[0].work_time : '' %>">
-                            <%= items[0].title %>
-                          </a>
-                        <% } %>
-                      <% } else { %>
-                        <a href="/worklog/new?date=<%= key %>" class="cal-empty-text">
-                          + 작성하기
-                        </a>
-                      <% } %>
-                    </div>
-                  <% } %>
-                </td>
-              <% } %>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </body>
+
 </html>

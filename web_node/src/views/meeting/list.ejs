@@ -7,215 +7,6 @@
   <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
-</head>
-
-<body>
-  <%- include('../partials/nav', { title, user, active: 'meeting' }) %>
-
-    <% function fmtTimeLocal(t) { if (!t) return '' ; const d=(t instanceof Date) ? t : new Date(t); const
-      hh=String(d.getHours()).padStart(2, '0' ); const mm=String(d.getMinutes()).padStart(2, '0' ); return hh + ':' +
-      mm; } %>
-
-      <div class="meeting-wrap">
-
-        <!-- 상단 제목 + 월 이동 / 오늘 버튼 -->
-        <div class="meeting-header">
-          <h1 class="board-title">회의실 예약</h1>
-
-          <div class="board-header-right">
-            <form method="get" action="/meeting" class="meeting-nav-form">
-              <input type="hidden" name="year" value="<%= year %>">
-              <input type="hidden" name="month" value="<%= month %>">
-
-              <button type="submit" name="prev" value="1" class="btn btn-secondary btn-sm">
-                ◀
-              </button>
-
-              <span class="meeting-month-label">
-                <%= year %>년 <%= month %>월
-              </span>
-
-              <button type="submit" name="next" value="1" class="btn btn-secondary btn-sm">
-                ▶
-              </button>
-
-              <a href="/meeting" class="btn btn-primary btn-sm meeting-today-btn">
-                오늘
-              </a>
-            </form>
-          </div>
-        </div>
-
-        <!-- 관리자용 회의실 관리 버튼 -->
-        <% if (user && user.role==='admin' ) { %>
-          <div style="margin-bottom: 12px;">
-            <a href="/meeting/rooms" class="btn btn-secondary">
-              회의실 관리
-            </a>
-          </div>
-          <% } %>
-
-            <!-- 캘린더 영역 -->
-            <div class="calendar-wrap">
-              <table class="calendar-table">
-                <thead>
-                  <tr>
-                    <th>일</th>
-                    <th>월</th>
-                    <th>화</th>
-                    <th>수</th>
-                    <th>목</th>
-                    <th>금</th>
-                    <th>토</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% var firstDate=new Date(year, month - 1, 1); var firstDay=firstDate.getDay(); var lastDate=new
-                    Date(year, month, 0).getDate(); var day=1 - firstDay; for (var week=0; week < 6; week++) { %>
-                    <tr>
-                      <% for (var d=0; d < 7; d++, day++) { var valid=(day>= 1 && day <= lastDate); var
-                          yyyy=String(year); var mm=String(month); if (mm.length===1) mm='0' + mm; var dd=String(day);
-                          if (dd.length===1) dd='0' + dd; var key=valid ? (yyyy + '-' + mm + '-' + dd) : null; var
-                          items=valid ? (reservationsByDate[key] || []) : []; %>
-                          <td class="<%= valid ? 'cal-cell' : 'cal-empty' %>" data-date="<%= key %>">
-                            <% if (valid) { %>
-                              <div class="cal-date">
-                                <%= day %>
-                              </div>
-
-                              <div class="cal-badges">
-                                <% if (items.length===0) { %>
-                                  <span class="cal-empty-text">예약 없음</span>
-                                  <% } else { %>
-                                    <% var max=(items.length < 2) ? items.length : 2; for (var i=0; i < max; i++) { var
-                                      r=items[i]; %>
-                                      <div class="cal-item">
-                                        <%= r.room_name %> /
-                                          <%= fmtTimeLocal(r.start_time) %> ~ <%= fmtTimeLocal(r.end_time) %>
-                                      </div>
-                                      <% } %>
-
-                                        <% if (items.length> 2) { %>
-                                          <div class="cal-more">+<%= items.length - 2 %>건</div>
-                                          <% } %>
-                                            <% } %>
-                              </div>
-                              <% } %>
-                          </td>
-                          <% } %>
-                    </tr>
-                    <% } %>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- 하단 예약 현황 -->
-            <div class="meeting-reservation-section">
-              <div class="board-header" style="margin-top: 0;">
-                <h2 class="board-title" id="selected-date-title" style="margin-bottom:0;">
-                  오늘 예약 현황
-                </h2>
-
-                <div style="display:flex; gap:5px;">
-                  <a id="reserve-btn" class="btn btn-primary" href="/meeting/reserve">예약하기</a>
-                  <a href="/meeting/my" class="btn btn-secondary">내 예약 목록</a>
-                </div>
-              </div>
-
-              <table class="board-table" id="reservation-table">
-                <thead>
-                  <tr>
-                    <th class="col-title">회의실</th>
-                    <th class="col-date">시작</th>
-                    <th class="col-date">종료</th>
-                    <th class="col-author">예약자</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-
-      </div><!-- .meeting-wrap 끝 -->
-
-      <script>
-        var RES_BY_DATE = <% - JSON.stringify(reservationsByDate || {}) %>;
-
-        var cells = document.querySelectorAll('.cal-cell');
-        var tbody = document.querySelector('#reservation-table tbody');
-        var titleEl = document.querySelector('#selected-date-title');
-        var reserveBtn = document.querySelector('#reserve-btn');
-
-        function toHM(value) {
-          if (!value) return '';
-          var d = new Date(value);
-          var hh = String(d.getHours()).padStart(2, '0');
-          var mm = String(d.getMinutes()).padStart(2, '0');
-          return hh + ':' + mm;
-        }
-
-        function renderDate(dateKey) {
-          var list = RES_BY_DATE[dateKey] || [];
-          titleEl.textContent = dateKey + ' 예약 현황';
-
-          reserveBtn.href = '/meeting/reserve?date=' + encodeURIComponent(dateKey);
-
-          tbody.innerHTML = '';
-          if (list.length === 0) {
-            var trEmpty = document.createElement('tr');
-            var tdEmpty = document.createElement('td');
-            tdEmpty.colSpan = 4;
-            tdEmpty.textContent = '예약이 없습니다.';
-            tdEmpty.className = 'empty-row';
-            trEmpty.appendChild(tdEmpty);
-            tbody.appendChild(trEmpty);
-            return;
-          }
-
-          list.forEach(function (r) {
-            var tr = document.createElement('tr');
-            tr.innerHTML =
-              '<td>' + r.room_name + '</td>' +
-              '<td>' + toHM(r.start_time) + '</td>' +
-              '<td>' + toHM(r.end_time) + '</td>' +
-              '<td>' + r.user_name + '</td>';
-            tbody.appendChild(tr);
-          });
-        }
-
-        cells.forEach(function (cell) {
-          cell.addEventListener('click', function () {
-            var dateKey = cell.dataset.date;
-            if (!dateKey) return;
-            renderDate(dateKey);
-          });
-        });
-
-        (function () {
-          var today = new Date();
-          var y = today.getFullYear();
-          var m = String(today.getMonth() + 1); if (m.length === 1) m = '0' + m;
-          var d = String(today.getDate()); if (d.length === 1) d = '0' + d;
-          var todayKey = y + '-' + m + '-' + d;
-
-          var currentYear = <%= year %>;
-          var currentMonth = <%= month %>;
-
-          if (currentYear !== y || currentMonth !== (today.getMonth() + 1)) {
-            var cellsArr = Array.prototype.slice.call(cells);
-            for (var i = 0; i < cellsArr.length; i++) {
-              var key = cellsArr[i].dataset.date;
-              if (key) {
-                todayKey = key;
-                break;
-              }
-            }
-          }
-
-          renderDate(todayKey);
-        })();
-      </script>
-
   <style>
     .meeting-wrap {
       max-width: 1000px;
@@ -294,6 +85,7 @@
     .calendar-table th:first-child {
       color: #ef4444;
     }
+
     .calendar-table th:last-child {
       color: #1d4ed8;
     }
@@ -388,7 +180,200 @@
       color: #9ca3af;
       padding: 30px !important;
     }
+
+    .calendar-table td.today {
+      background-color: #e6f7ff;
+      border: 2px solid #1890ff;
+    }
+
+    /* 오늘 날짜 텍스트 강조 */
+    .calendar-table td.today .cal-date {
+      color: #1890ff;
+      font-weight: 700;
+      padding: 2px 4px;
+      background-color: #cce0ff;
+      border-radius: 4px;
+      display: inline-block;
+    }
   </style>
 </head>
+
+<body><%- include('../partials/nav', { title, user, active: 'meeting' }) %>
+    <%function fmtTimeLocal(t){if(!t)return'';const d=(t instanceof Date)?t:new Date(t);const
+      hh=String(d.getHours()).padStart(2,'0');const mm=String(d.getMinutes()).padStart(2,'0');return hh+':'+mm;}%>
+      <div class="meeting-wrap">
+        <div class="meeting-header">
+          <h1 class="board-title">회의실 예약</h1>
+          <div class="board-header-right">
+            <form method="get" action="/meeting" class="meeting-nav-form"><input type="hidden" name="year"
+                value="<%= year %>"><input type="hidden" name="month" value="<%= month %>"><button type="submit"
+                name="prev" value="1" class="btn btn-secondary btn-sm">◀</button><span class="meeting-month-label">
+                <%= year %>년 <%= month %>월
+              </span><button type="submit" name="next" value="1" class="btn btn-secondary btn-sm">▶</button><a
+                href="/meeting" class="btn btn-primary btn-sm meeting-today-btn">오늘</a></form>
+          </div>
+        </div>
+        <% if (user && user.role==='admin' ) { %>
+          <div style="margin-bottom: 12px;"><a href="/meeting/rooms" class="btn btn-secondary">회의실 관리</a></div>
+          <% } %>
+            <div class="calendar-wrap">
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>일</th>
+                    <th>월</th>
+                    <th>화</th>
+                    <th>수</th>
+                    <th>목</th>
+                    <th>금</th>
+                    <th>토</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%var today=new Date();var pad=(n)=>(n<10?'0'+n:String(n));var
+                      todayKey=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());var
+                      firstDate=new Date(year,month-1,1);var firstDay=firstDate.getDay();var lastDate=new
+                      Date(year,month,0).getDate();var day=1-firstDay;for(var week=0;week<6;week++){%>
+                      <tr>
+                        <%for(var d=0;d<7;d++,day++){var valid=(day>=1&&day<=lastDate);var yyyy=String(year);var
+                            mm=pad(month);var dd=pad(day);var key=valid?(yyyy+'-'+mm+'-'+dd):null;var
+                            items=valid?(reservationsByDate[key]||[]):[];var isToday=valid&&(key===todayKey);var
+                            classList=valid?'cal-cell':'cal-empty';if(isToday){classList+=' today' ;}%>
+                            <td class="<%=classList%>" data-date="<%=key%>">
+                              <%if(valid){%>
+                                <div class="cal-date">
+                                  <%=day%>
+                                </div>
+                                <div class="cal-badges">
+                                  <%if(items.length===0){%><span class="cal-empty-text">예약 없음</span>
+                                    <%}else{var max=(items.length<2)?items.length:2;for(var i=0;i<max;i++){var
+                                      r=items[i];%>
+                                      <div class="cal-item">
+                                        <%=r.room_name%> / <%=fmtTimeLocal(r.start_time)%> ~
+                                            <%=fmtTimeLocal(r.end_time)%>
+                                      </div>
+                                      <%}%>
+                                        <%if(items.length>2){%><div class="cal-more">+<%=items.length-2%>건</div>
+                                          <%}%>
+                                            <%}%>
+                                </div>
+                                <%}%>
+                            </td>
+                            <%}%>
+                      </tr>
+                      <%}%>
+                </tbody>
+              </table>
+            </div>
+            <div class="meeting-reservation-section">
+              <div class="board-header" style="margin-top: 0;">
+                <h2 class="board-title" id="selected-date-title" style="margin-bottom:0;">오늘 예약 현황</h2>
+                <div style="display:flex; gap:5px;"><a id="reserve-btn" class="btn btn-primary"
+                    href="/meeting/reserve">예약하기</a><a href="/meeting/my" class="btn btn-secondary">내 예약 목록</a></div>
+              </div>
+              <table class="board-table" id="reservation-table">
+                <thead>
+                  <tr>
+                    <th class="col-title">회의실</th>
+                    <th class="col-date">시작</th>
+                    <th class="col-date">종료</th>
+                    <th class="col-author">예약자</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+      </div>
+      <script>
+        var RES_BY_DATE = <%- JSON.stringify(reservationsByDate || {}) %>;
+
+        var cells = document.querySelectorAll('.cal-cell');
+        var tbody = document.querySelector('#reservation-table tbody');
+        var titleEl = document.querySelector('#selected-date-title');
+        var reserveBtn = document.querySelector('#reserve-btn');
+
+        function toHM(value) {
+          if (!value) return '';
+          var d = new Date(value);
+          var hh = String(d.getHours()).padStart(2, '0');
+          var mm = String(d.getMinutes()).padStart(2, '0');
+          return hh + ':' + mm;
+        }
+
+        function renderDate(dateKey) {
+          var list = RES_BY_DATE[dateKey] || [];
+          var today = new Date();
+          var y = today.getFullYear();
+          var m = String(today.getMonth() + 1).padStart(2, '0');
+          var d = String(today.getDate()).padStart(2, '0');
+          var todayStr = y + '-' + m + '-' + d;
+
+          if (dateKey === todayStr) {
+            titleEl.textContent = '오늘 예약 현황';
+          } else {
+            titleEl.textContent = dateKey + ' 예약 현황';
+          }
+
+          reserveBtn.href = '/meeting/reserve?date=' + encodeURIComponent(dateKey);
+
+          tbody.innerHTML = '';
+          if (list.length === 0) {
+            var trEmpty = document.createElement('tr');
+            var tdEmpty = document.createElement('td');
+            tdEmpty.colSpan = 4;
+            tdEmpty.textContent = '예약이 없습니다.';
+            tdEmpty.className = 'empty-row';
+            trEmpty.appendChild(tdEmpty);
+            tbody.appendChild(trEmpty);
+            return;
+          }
+
+          list.forEach(function (r) {
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+              '<td>' + r.room_name + '</td>' +
+              '<td>' + toHM(r.start_time) + '</td>' +
+              '<td>' + toHM(r.end_time) + '</td>' +
+              '<td>' + r.user_name + '</td>';
+            tbody.appendChild(tr);
+          });
+        }
+
+        cells.forEach(function (cell) {
+          cell.addEventListener('click', function () {
+            var dateKey = cell.dataset.date;
+            if (!dateKey) return;
+            renderDate(dateKey);
+          });
+        });
+
+        (function () {
+          var today = new Date();
+          var y = today.getFullYear();
+          var m = today.getMonth() + 1;
+          var d = today.getDate();
+
+          var todayKey = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+
+          var currentYear = <%= year %>;
+          var currentMonth = <%= month %>;
+
+          var initialDateKey = todayKey;
+
+          if (currentYear !== y || currentMonth !== m) {
+            var cellsArr = Array.prototype.slice.call(cells);
+            for (var i = 0; i < cellsArr.length; i++) {
+              var key = cellsArr[i].dataset.date;
+              if (key) {
+                initialDateKey = key;
+                break;
+              }
+            }
+          }
+
+          renderDate(initialDateKey)
+        })();
+      </script>
 </body>
+
 </html>

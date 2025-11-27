@@ -25,9 +25,9 @@ router.get("/signup", (req, res) => {
 // 회원가입 페이지
 router.post("/signup", async (req, res, next) => {
   try {
-    const { username, email, password, department, position } = req.body;
+    const { username, email, password, department, position, phone_number } = req.body;
 
-    if (!username || !email || !password || !department || !position) {
+    if (!username || !email || !password || !department || !position || !phone_number) {
       return res.status(400).render("signup", {
         title: "회원가입",
         active: "",
@@ -51,8 +51,8 @@ router.post("/signup", async (req, res, next) => {
     }
 
     await db.query(
-      "INSERT INTO users (user_name, email, password, department, position) VALUES (?, ?, ?, ?, ?)",
-      [username, email, password, department, position]
+      "INSERT INTO users (user_name, email, password, department, position, phone_number) VALUES (?, ?, ?, ?, ?, ?)",
+      [username, email, password, department, position, phone_number]
     );
 
     return res.redirect("/");
@@ -76,7 +76,7 @@ router.post("/login", async (req, res, next) => {
 
     // 사용자 조회
     const [rows] = await db.query(
-      "SELECT user_id, user_name, email, password, role, department, position phone_number FROM users WHERE email = ?",
+      "SELECT user_id, user_name, email, password, role, department, position, phone_number FROM users WHERE email = ?",
       [email]
     );
 
