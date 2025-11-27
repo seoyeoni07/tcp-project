@@ -1,10 +1,10 @@
-CREATE DATABASE IF NOT EXISTS unistudyhub
+CREATE DATABASE IF NOT EXISTS teamdeskhub
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_general_ci;
 
-USE unistudyhub;
+USE teamdeskhub;
 
--- 사용자(user) 정보 테이블
+-- 사용자(users) 테이블
 CREATE TABLE IF NOT EXISTS users (
   user_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_name  VARCHAR(50)  NOT NULL,
@@ -15,14 +15,16 @@ CREATE TABLE IF NOT EXISTS users (
   password   VARCHAR(255) NOT NULL,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   role       ENUM('user','admin') DEFAULT 'user',
+  work_status VARCHAR(20) DEFAULT 'offline',
+  status_updated_at DATETIME DEFAULT NULL,
+  
   PRIMARY KEY (user_id),
   UNIQUE KEY email (email)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 게시판 글(boards)
--- 일반 게시글 + 공지 + 파일첨부
+-- 게시판(boards) 테이블
 CREATE TABLE IF NOT EXISTS boards (
   post_id       INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id       INT UNSIGNED NOT NULL,
@@ -48,8 +50,7 @@ CREATE TABLE IF NOT EXISTS boards (
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
--- 게시판 댓글(comments)
--- 게시글(post_id)에 달린 댓글
+-- 댓글(comments) 테이블
 CREATE TABLE IF NOT EXISTS comments (
   comment_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   post_id    INT UNSIGNED NOT NULL,
@@ -69,9 +70,7 @@ CREATE TABLE IF NOT EXISTS comments (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 업무일지(worklogs)
--- 업무일지 저장
--- 쿼리 업데이트됨 drop후 추가
+-- 업무일지(worklogs) 테이블
 CREATE TABLE IF NOT EXISTS worklogs (
     log_id      INT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id     INT UNSIGNED NOT NULL,
@@ -96,8 +95,7 @@ CREATE TABLE IF NOT EXISTS worklogs (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_general_ci;
 
--- 회의실 정보(meeting_rooms)
--- 
+-- 회의실 정보(meeting_rooms) 테이블
 CREATE TABLE IF NOT EXISTS meeting_rooms (
   room_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
   room_name VARCHAR(100) NOT NULL,
@@ -108,8 +106,7 @@ CREATE TABLE IF NOT EXISTS meeting_rooms (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 회의실 예약(meeting_reservations)
--- 회의실 예약 정보
+-- 회의실 예약(meeting_reservations) 테이블
 CREATE TABLE IF NOT EXISTS meeting_reservations (
   reservation_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id        INT UNSIGNED NOT NULL,
@@ -130,8 +127,7 @@ CREATE TABLE IF NOT EXISTS meeting_reservations (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 채팅방(chat_rooms)
--- 1:1 / 그룹 여부 **수정함**
+-- 채팅방(chat_rooms) 테이블
 CREATE TABLE IF NOT EXISTS chat_rooms (
   room_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   room_name VARCHAR(100) NOT NULL,
@@ -146,8 +142,7 @@ CREATE TABLE IF NOT EXISTS chat_rooms (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
 
--- 채팅방 참여자(chat_participants) **수정함**
--- 어떤 사용자가 어떤 채팅방에 속하는지
+-- 채팅방 참여자(chat_participants) 테이블
 CREATE TABLE IF NOT EXISTS chat_participants (
   participant_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   room_id INT UNSIGNED NOT NULL,
@@ -166,8 +161,7 @@ CREATE TABLE IF NOT EXISTS chat_participants (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
   
--- 채팅 메시지(messages)
--- 채팅 메시지 내용 저장
+-- 채팅 메시지(messages) 테이블
 CREATE TABLE IF NOT EXISTS messages (
   message_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id    INT UNSIGNED NOT NULL,

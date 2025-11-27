@@ -6,9 +6,9 @@
   <title>
     <%= title %>
   </title>
+  <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
-  <link rel="stylesheet" href="/css/board.css" />
 </head>
 
 <body>
@@ -68,6 +68,97 @@
             </tbody>
           </table>
     </div>
-</body>
 
+    <style>
+    .board-wrap {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 32px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .board-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .board-error {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .board-section {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+    }
+
+    .form-input {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+
+    .board-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--border-color);
+    }
+
+    .board-table th,
+    .board-table td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+
+    .board-table th {
+      background-color: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .board-table td {
+      color: var(--text-secondary);
+    }
+
+    .board-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty-row {
+      text-align: center;
+      color: var(--text-tertiary);
+      padding: 40px !important;
+    }
+  </style>
+</head>
+</body>
 </html>

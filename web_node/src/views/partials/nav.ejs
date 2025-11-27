@@ -2,7 +2,7 @@
 
 <header class="nav">
   <div class="nav-left">
-    <a href="/home" class="nav-logo">UniStudyHub</a>
+    <a href="/home" class="nav-logo">TeamDeskHub</a>
   </div>
 
   <nav class="nav-menu">
@@ -18,6 +18,28 @@
 
   <div class="nav-right">
     <% if (isLoggedIn) { %>
+      <!-- 🆕 상태 변경 드롭다운 -->
+      <div class="status-dropdown">
+        <button class="status-btn" id="status-btn">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">로딩중</span>
+        </button>
+        <div class="status-menu" id="status-menu">
+          <button class="status-option" data-status="online">
+            <span class="status-dot online"></span> 출근중
+          </button>
+          <button class="status-option" data-status="meeting">
+            <span class="status-dot meeting"></span> 회의중
+          </button>
+          <button class="status-option" data-status="out">
+            <span class="status-dot out"></span> 외근
+          </button>
+          <button class="status-option" data-status="offline">
+            <span class="status-dot offline"></span> 퇴근
+          </button>
+        </div>
+      </div>
+
       <span class="nav-user"><%= user.user_name || user.email %>님</span>
       <a href="/logout">로그아웃</a>
     <% } else { %>
@@ -27,25 +49,80 @@
   </div>
 </header>
 
-<style>
-.nav { 
-  display:flex; 
-  justify-content:space-between; 
-  align-items:center; 
-  padding:12px 20px; 
-  background:#f4f4f4;
-  border-bottom:1px solid #ddd;
-}
-.nav-menu a {
-  margin:0 10px;
-  text-decoration:none;
-  color:#333;
-}
-.nav-menu .active {
-  font-weight:bold;
-  color:#0d6efd;
-}
-.nav-right a {
-  margin-left:10px;
-}
-</style>
+<% if (isLoggedIn) { %>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  
+  const statusLabels = {
+    'online': '출근중',
+    'meeting': '회의중',
+    'out': '외근',
+    'offline': '퇴근'
+  };
+
+  const currentStatus = '<%= user.work_status || "offline" %>';
+  
+  // 초기 상태 표시
+  function updateStatusDisplay(status) {
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    
+    if (statusDot && statusText) {
+      statusDot.className = 'status-dot ' + status;
+      statusText.textContent = statusLabels[status] || '알 수 없음';
+    }
+  }
+
+  // 페이지 로드 시 초기 상태 표시
+  updateStatusDisplay(currentStatus);
+
+  // 드롭다운 토글
+  const statusBtn = document.getElementById('status-btn');
+  const statusMenu = document.getElementById('status-menu');
+
+  if (statusBtn && statusMenu) {
+    statusBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      statusMenu.classList.toggle('show');
+    });
+
+    // 외부 클릭 시 닫기
+    document.addEventListener('click', () => {
+      statusMenu.classList.remove('show');
+    });
+
+    // 상태 변경
+    const statusOptions = document.querySelectorAll('.status-option');
+    statusOptions.forEach(option => {
+      option.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const newStatus = option.dataset.status;
+        
+        try {
+          // API 호출
+          const response = await fetch('/api/status/change', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+
+          if (response.ok) {
+            // Socket.io로 실시간 전파
+            socket.emit('status-change', { status: newStatus });
+            
+            // UI 업데이트
+            updateStatusDisplay(newStatus);
+            statusMenu.classList.remove('show');
+          }
+        } catch (error) {
+          console.error('상태 변경 오류:', error);
+          alert('상태 변경에 실패했습니다.');
+        }
+      });
+    });
+  }
+</script>
+<% } %>

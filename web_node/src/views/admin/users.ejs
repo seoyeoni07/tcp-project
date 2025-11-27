@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <title><%= title %></title>
 
+  <link rel="stylesheet" href="/css/design-system.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/nav.css" />
-  <link rel="stylesheet" href="/css/board.css" />
 </head>
 <body>
   <%- include("../partials/nav", { title, user, active: "admin" }) %>
@@ -82,5 +82,167 @@
       </table>
     </div>
   </div>
+
+  <style>
+    body {
+      background: var(--bg-page);
+    }
+
+    .board-wrap {
+      max-width: 1400px;
+      margin: 40px auto;
+      padding: 32px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .board-header {
+      margin-bottom: 28px;
+    }
+
+    .board-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .board-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--border-color);
+      font-size: 13px;
+    }
+
+    .board-table th,
+    .board-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .board-table th {
+      background-color: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .board-table td {
+      color: var(--text-secondary);
+    }
+
+    .board-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .board-table tbody tr:hover {
+      background-color: #fafafa;
+    }
+
+    /* 입력 필드 */
+    .board-table input[type="text"],
+    .board-table select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .board-table input[type="text"]:focus,
+    .board-table select:focus {
+      border-color: var(--primary);
+    }
+
+    .board-table td:nth-child(4) input {
+      max-width: 100px;
+    }
+
+    .board-table td:nth-child(5) input {
+      max-width: 100px;
+    }
+
+    .board-table td:nth-child(6) input {
+      max-width: 130px;
+    }
+
+    .board-table select {
+      max-width: 90px;
+      cursor: pointer;
+    }
+
+    .board-table form {
+      margin: 0;
+    }
+
+    .board-table button {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: white;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .board-table button:hover {
+      background: var(--bg-secondary);
+    }
+
+    .board-table button[type="submit"]:first-of-type {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .board-table button[type="submit"]:first-of-type:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .board-table td:last-child {
+      white-space: nowrap;
+    }
+
+    .board-table td:last-child form {
+      display: inline-block;
+    }
+
+    .board-table td:last-child form:first-child {
+      margin-right: 4px;
+    }
+
+    .board-table td:last-child form:last-child button {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+
+    .board-table td:last-child form:last-child button:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+    }
+
+    .board-table td[colspan] {
+      text-align: center;
+      color: var(--text-tertiary);
+      padding: 40px !important;
+    }
+
+    .board-wrap > div {
+      overflow-x: auto;
+    }
+  </style>
+</head>
 </body>
 </html>

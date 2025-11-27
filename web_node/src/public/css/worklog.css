@@ -1,154 +1,297 @@
-/* worklog 스타일 */
 .worklog-wrap {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 24px 20px 32px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
+  max-width: var(--container-md);
+  margin: var(--spacing-4xl) auto;
+  padding: var(--spacing-3xl) var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-white);
 }
 
 .worklog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.wl-header {
+  max-width: var(--container-md);
+  margin: 0 auto var(--spacing-xl);
+  justify-content: flex-start;
+  padding: 0 var(--spacing-lg);
 }
 
 .worklog-title {
   margin: 0;
-  font-size: 22px;
-  color: #1c1e21;
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .worklog-note {
-  margin: 0 0 10px 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.btn-primary,
-.btn-secondary {
-  display: inline-block;
-  padding: 8px 14px;
-  font-size: 14px;
-  border-radius: 6px;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: #ffffff;
-}
-
-.btn-primary:hover {
-  background-color: #0062cc;
-}
-
-.btn-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background-color: #e5e7eb;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
 
 /* 목록 테이블 */
 .worklog-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-base);
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .worklog-table th,
 .worklog-table td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-bottom: 1px solid var(--border-light);
   text-align: left;
 }
 
 .worklog-table th {
-  background-color: #f9fafb;
+  background-color: var(--gray-50);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.worklog-table tbody tr {
+  transition: var(--transition);
+}
+
+.worklog-table tbody tr:hover {
+  background-color: var(--gray-50);
+}
+
+.worklog-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .worklog-table td.title a {
-  color: #111827;
+  color: var(--text-primary);
   text-decoration: none;
+  font-weight: 500;
 }
 
 .worklog-table td.title a:hover {
+  color: var(--primary);
   text-decoration: underline;
 }
 
 .worklog-empty {
-  margin: 40px 0 10px;
-  font-size: 14px;
-  color: #6b7280;
+  margin: var(--spacing-4xl) 0 var(--spacing-md);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
   text-align: center;
 }
 
 .error-message {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background-color: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-  font-size: 13px;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  background-color: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  font-size: var(--text-sm);
+  font-weight: 500;
 }
 
 .worklog-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-lg);
+}
+
+.worklog-form .input-group,
+.worklog-form .form-row {
+  margin-bottom: var(--spacing-lg);
+}
+
+.worklog-form input,
+.worklog-form textarea {
+  width: 100%;
 }
 
 .form-row label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #374151;
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .form-row input,
 .form-row textarea {
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  box-sizing: border-box;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-300);
+  font-size: var(--text-base);
+  transition: var(--transition);
+}
+
+.form-row input:focus,
+.form-row textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .form-row textarea {
-  min-height: 220px;
+  min-height: 240px;
   resize: vertical;
+  line-height: 1.8;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
+/* 상세 보기 */
 .worklog-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 12px;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
 }
 
 .worklog-body {
-  padding: 14px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-white);
+  font-size: var(--text-base);
+  line-height: 1.8;
   white-space: pre-wrap;
+  color: var(--text-primary);
+  min-height: 240px;
+}
+
+/* 캘린더 */
+.calendar-wrap {
+  background: var(--bg-white);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  margin: var(--spacing-4xl) auto;
+  max-width: 700px;
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.calendar-table th,
+.calendar-table td {
+  border: 1px solid var(--border-color);
+  padding: 8px 4px;
+  text-align: center;
+  vertical-align: top;
+  height: 70px;
+}
+
+.calendar-table th {
+  background-color: var(--bg-secondary);
+  font-weight: 600;
+  padding: 10px 4px;
+  font-size: 14px;
+}
+
+.calendar-table th:first-child,
+.calendar-table td:first-child {
+  color: var(--danger) !important;
+}
+
+.calendar-table th:last-child,
+.calendar-table td:last-child {
+  color: var(--primary) !important;
+}
+
+.day-number {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.cal-cell {
+  cursor: pointer;
+  background: var(--bg-white);
+  transition: var(--transition);
+}
+
+.cal-cell:hover {
+  background: var(--gray-50);
+}
+
+.cal-empty {
+  background: var(--gray-50);
+  cursor: default;
+}
+
+.cal-empty:hover {
+  background: var(--gray-50);
+}
+
+.cal-date {
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--text-sm);
+  display: block;
+}
+
+.cal-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  margin-top: var(--spacing-xs);
+}
+
+.cal-empty-text {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.cal-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 11px;
+  padding: 2px 4px;
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: 2px;
+}
+
+.cal-more {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.calendar-grid td span {
+  display: block;
+  padding: var(--spacing-xs) 0;
+  font-size: var(--text-sm);
 }

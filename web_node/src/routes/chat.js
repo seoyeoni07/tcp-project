@@ -1,6 +1,6 @@
 import express from "express";
 import db from "../config/db.js";
-import { notifyNewRoom } from "../app.js"; // app.js에서 함수 가져오기
+import { notifyNewRoom } from "../app.js"; 
 
 const router = express.Router();
 
@@ -45,10 +45,18 @@ router.get("/", requireLogin, async (req, res, next) => {
 
     const [users] = await db.query(
       `
-      SELECT user_id, user_name
+      SELECT user_id, user_name, department, position, work_status
       FROM users
       WHERE user_id <> ?
-      ORDER BY user_name ASC
+      ORDER BY 
+        CASE work_status
+          WHEN 'online' THEN 1
+          WHEN 'meeting' THEN 2
+          WHEN 'out' THEN 3
+          WHEN 'offline' THEN 4
+          ELSE 5
+        END,
+        user_name ASC
       `,
       [user.user_id]
     );

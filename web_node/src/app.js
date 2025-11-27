@@ -15,6 +15,7 @@ import worklogRouter from "./routes/worklog.js";
 import meetingRouter from "./routes/meeting.js";
 import homeRouter from "./routes/home.js";
 import adminRouter from "./routes/admin.js";
+import statusRouter from "./routes/status.js";
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use("/chat", chatRouter);
 app.use("/worklog", worklogRouter);
 app.use("/meeting", meetingRouter);
 app.use("/admin", adminRouter);
+app.use("/api/status", statusRouter);
 
 io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
@@ -131,7 +133,6 @@ async function getRoomParticipants(roomId) {
 }
 
 //새 채팅방 생성시 알림
-
 export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
   if (!io) return;
 
@@ -185,7 +186,7 @@ io.on("connection", (socket) => {
 
       const lastMessageId = messages.length > 0 ? messages[messages.length - 1].message_id : null;
       if (lastMessageId) {
-        // 방에 들어오면 마지막 메시지까지 읽음 처리
+        // 방에 들어오면 읽음 처리
         await updateLastReadMessageId(userId, currentRoomId, lastMessageId);
       }
 
@@ -235,7 +236,7 @@ io.on("connection", (socket) => {
       newMessageId = await saveChatMessage(socket.userId, text, roomId);
       if (!newMessageId) return;
 
-      // 메시지 전송 직후 읽음 처리 (자신)
+      // 메시지 전송 직후 읽음 처리
       await updateLastReadMessageId(socket.userId, roomId, newMessageId);
 
     } catch (error) {
@@ -270,6 +271,45 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`${socket.userName} 연결이 끊어졌습니다.`);
+  });
+  socket.on("status-change", async (data) => {
+    const { status } = data;
+    const validStatuses = ["online", "meeting", "out", "offline"];
+    
+    if (!validStatuses.includes(status)) {
+      return;
+    }
+
+    try {
+      await db.query(
+        `UPDATE users 
+         SET work_status = ?, 
+             status_updated_at = NOW() 
+         WHERE user_id = ?`,
+        [status, socket.userId]
+      );
+
+      if (socket.request.session.user) {
+        socket.request.session.user.work_status = status;
+      }
+
+      // 전체 팀원 상태 조회
+      const [users] = await db.query(
+        `SELECT 
+          user_id, 
+          user_name, 
+          department, 
+          position, 
+          work_status,
+          status_updated_at
+        FROM users`
+      );
+
+      io.emit("status-updated", { users });
+
+    } catch (error) {
+      console.error("상태 변경 오류:", error);
+    }
   });
 });
 

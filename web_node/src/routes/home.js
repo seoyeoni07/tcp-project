@@ -37,13 +37,4 @@ router.get("/", requireLogin, async (req, res, next) => {
     next(err);
   }
 });
-
-router.get("/", requireLogin, (req, res) => {
-  res.render("home", {
-    title: "홈",
-    user: req.session.user,
-    active: "home",
-  });
-});
-
 export default router;
