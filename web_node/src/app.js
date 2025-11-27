@@ -40,7 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const sessionMiddleware = session({
-  secret: "unistudyhub-secret",
+  secret: process.env.SESSION_SECRET || "TeamDeskHub",
   resave: false,
   saveUninitialized: false,
 });

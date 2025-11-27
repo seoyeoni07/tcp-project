@@ -226,7 +226,7 @@ router.post(
   }
 );
 
-// 글 수정
+// 글 수정 페이지
 router.get("/:id/edit", requireLogin, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -241,6 +241,9 @@ router.get("/:id/edit", requireLogin, async (req, res, next) => {
              b.title,
              b.content,
              b.is_notice,
+             b.file_original,
+             b.file_saved,
+             b.file_size,
              DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i') AS created_at_fmt,
              DATE_FORMAT(b.updated_at, '%Y-%m-%d %H:%i') AS updated_at_fmt
       FROM boards b
@@ -274,7 +277,7 @@ router.get("/:id/edit", requireLogin, async (req, res, next) => {
   }
 });
 
-// 글 수정
+// 글 수정 처리 - 파일 삭제 체크박스 추가
 router.post(
   "/:id/edit",
   requireLogin,
@@ -286,7 +289,7 @@ router.post(
         return res.status(400).send("잘못된 요청입니다.");
       }
 
-      const { title, content, is_notice } = req.body;
+      const { title, content, is_notice, delete_file } = req.body;
       const user = req.session.user;
       if (!user) return res.redirect("/");
 
@@ -294,22 +297,95 @@ router.post(
         return res.status(400).send("제목과 내용을 입력하세요.");
       }
 
-      const isAdmin = user.role === "admin";
-      const isNoticeValue = isAdmin && is_notice ? 1 : 0;
-      const [result] = await db.query(
-        `
-        UPDATE boards
-        SET title = ?, content = ?, is_notice = ?, updated_at = NOW()
-        WHERE post_id = ?
-          AND (user_id = ? OR ? = 'admin')
-        `,
-        [title, content, isNoticeValue, id, user.user_id, user.role]
+      // 1. 기존 파일 정보 조회
+      const [existingRows] = await db.query(
+        "SELECT file_saved FROM boards WHERE post_id = ? AND (user_id = ? OR ? = 'admin')",
+        [id, user.user_id, user.role]
       );
 
+      if (existingRows.length === 0) {
+        return res.status(403).send("수정 권한이 없거나 글이 존재하지 않습니다.");
+      }
+
+      const oldFileSaved = existingRows[0].file_saved;
+      const isAdmin = user.role === "admin";
+      const isNoticeValue = isAdmin && is_notice ? 1 : 0;
+
+      // 2. 새 파일 업로드 여부 확인
+      const newFile = req.file;
+      
+      // 3. 파일 삭제 체크박스 확인
+      const shouldDeleteFile = delete_file === "1";
+
+      let updateQuery;
+      let updateParams;
+
+      if (newFile) {
+        // 케이스 1: 새 파일이 업로드된 경우
+        const decoded = Buffer.from(newFile.originalname, "latin1").toString("utf8");
+        const fileOriginal = decoded.normalize("NFC");
+        const fileSaved = newFile.filename;
+        const fileSize = newFile.size;
+
+        // 기존 파일 삭제
+        if (oldFileSaved) {
+          const oldFilePath = path.join(uploadDir, oldFileSaved);
+          if (fs.existsSync(oldFilePath)) {
+            try {
+              fs.unlinkSync(oldFilePath);
+              console.log(`[파일 교체] 기존 파일 삭제: ${oldFilePath}`);
+            } catch (err) {
+              console.error("기존 파일 삭제 실패:", err);
+            }
+          }
+        }
+
+        // 새 파일 정보로 업데이트
+        updateQuery = `
+          UPDATE boards
+          SET title = ?, content = ?, is_notice = ?, 
+              file_original = ?, file_saved = ?, file_size = ?,
+              updated_at = NOW()
+          WHERE post_id = ? AND (user_id = ? OR ? = 'admin')
+        `;
+        updateParams = [title, content, isNoticeValue, fileOriginal, fileSaved, fileSize, id, user.user_id, user.role];
+        
+      } else if (shouldDeleteFile && oldFileSaved) {
+        // 케이스 2: 파일 삭제만 하는 경우
+        const oldFilePath = path.join(uploadDir, oldFileSaved);
+        if (fs.existsSync(oldFilePath)) {
+          try {
+            fs.unlinkSync(oldFilePath);
+            console.log(`[파일 삭제] 첨부 파일 삭제: ${oldFilePath}`);
+          } catch (err) {
+            console.error("파일 삭제 실패:", err);
+          }
+        }
+
+        // DB에서 파일 정보 제거
+        updateQuery = `
+          UPDATE boards
+          SET title = ?, content = ?, is_notice = ?,
+              file_original = NULL, file_saved = NULL, file_size = NULL,
+              updated_at = NOW()
+          WHERE post_id = ? AND (user_id = ? OR ? = 'admin')
+        `;
+        updateParams = [title, content, isNoticeValue, id, user.user_id, user.role];
+        
+      } else {
+        // 케이스 3: 파일 변경 없음
+        updateQuery = `
+          UPDATE boards
+          SET title = ?, content = ?, is_notice = ?, updated_at = NOW()
+          WHERE post_id = ? AND (user_id = ? OR ? = 'admin')
+        `;
+        updateParams = [title, content, isNoticeValue, id, user.user_id, user.role];
+      }
+
+      const [result] = await db.query(updateQuery, updateParams);
+
       if (result.affectedRows === 0) {
-        return res
-          .status(403)
-          .send("수정 권한이 없거나 글이 존재하지 않습니다.");
+        return res.status(403).send("수정 권한이 없거나 글이 존재하지 않습니다.");
       }
 
       return res.redirect(`/board/${id}`);
@@ -319,7 +395,7 @@ router.post(
   }
 );
 
-// 글 삭제
+// 글 삭제 - 파일도 함께 삭제
 router.post("/:id/delete", requireLogin, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -330,19 +406,46 @@ router.post("/:id/delete", requireLogin, async (req, res, next) => {
     const user = req.session.user;
     if (!user) return res.redirect("/");
 
+    // 1. 파일 정보 먼저 조회
+    const [fileRows] = await db.query(
+      `
+      SELECT file_saved
+      FROM boards
+      WHERE post_id = ? AND (user_id = ? OR ? = 'admin')
+      `,
+      [id, user.user_id, user.role]
+    );
+
+    if (fileRows.length === 0) {
+      return res.status(403).send("삭제 권한이 없거나 글이 존재하지 않습니다.");
+    }
+
+    const fileSaved = fileRows[0].file_saved;
+
+    // 2. DB에서 삭제
     const [result] = await db.query(
       `
       DELETE FROM boards
-      WHERE post_id = ?
-        AND (user_id = ? OR ? = 'admin')
+      WHERE post_id = ? AND (user_id = ? OR ? = 'admin')
       `,
       [id, user.user_id, user.role]
     );
 
     if (result.affectedRows === 0) {
-      return res
-        .status(403)
-        .send("삭제 권한이 없거나 글이 존재하지 않습니다.");
+      return res.status(403).send("삭제 권한이 없거나 글이 존재하지 않습니다.");
+    }
+
+    // 3. 파일 시스템에서도 파일 삭제
+    if (fileSaved) {
+      const filePath = path.join(uploadDir, fileSaved);
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+          console.log(`[글 삭제] 첨부 파일 삭제 완료: ${filePath}`);
+        } catch (err) {
+          console.error("파일 삭제 실패:", err);
+        }
+      }
     }
 
     return res.redirect("/board");

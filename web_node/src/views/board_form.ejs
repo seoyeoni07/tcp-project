@@ -27,7 +27,6 @@
       enctype="multipart/form-data"
       action="<%= mode === 'edit' && post ? ('/board/' + post.post_id + '/edit') : '/board/new' %>"
     >
-      <!-- 제목 -->
       <input
         class="input-text"
         type="text"
@@ -37,10 +36,8 @@
         required
       />
 
-      <!-- 내용 -->
 <textarea class="input-textarea" name="content" required><%= post ? post.content : '' %></textarea>
 
-      <!-- 공지 체크 (관리자만) -->
       <% const isAdmin = user && user.role === 'admin'; %>
       <% if (isAdmin) { %>
         <div class="form-row">
@@ -56,18 +53,36 @@
         </div>
       <% } %>
 
-      <!-- 첨부 파일 -->
       <div class="form-row">
         <label>첨부 파일</label>
-        <input type="file" name="attachment" />
+        
         <% if (mode === 'edit' && post && post.file_original) { %>
-          <div class="help-text">
-            현재 파일: <%= post.file_original %>
+          <div class="current-file">
+            <div class="file-info">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M9 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5L9 0z"/>
+                <path d="M9 4.5V0l4.5 4.5H9z"/>
+              </svg>
+              <span class="file-name"><%= post.file_original %></span>
+              <% if (post.file_size) { %>
+                <span class="file-size">(<%= (post.file_size / 1024).toFixed(1) %> KB)</span>
+              <% } %>
+            </div>
+            
+            <label class="delete-file-option">
+              <input type="checkbox" name="delete_file" value="1" id="deleteFileCheckbox" />
+              기존 파일 삭제
+            </label>
+          </div>
+          
+          <div class="help-text" style="margin-top: 12px;">
+            💡 새 파일을 선택하면 기존 파일이 교체됩니다
           </div>
         <% } %>
+        
+        <input type="file" name="attachment" id="fileInput" />
       </div>
 
-     <!-- 버튼 -->
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
         <a href="/board" class="btn btn-secondary">목록</a>
         <button type="submit" class="btn btn-primary">
@@ -172,6 +187,67 @@
       cursor: pointer;
     }
 
+    .current-file {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .file-info svg {
+      flex-shrink: 0;
+      color: var(--primary);
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .file-size {
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .delete-file-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      width: fit-content;
+    }
+
+    .delete-file-option:hover {
+      background: #fee;
+      border-color: #fcc;
+    }
+
+    .delete-file-option input[type="checkbox"] {
+      margin: 0;
+    }
+
+    .delete-file-option input[type="checkbox"]:checked + span {
+      color: #dc2626;
+    }
+
     .help-text {
       font-size: 13px;
       color: var(--text-tertiary);
@@ -211,6 +287,25 @@
       background: var(--bg-secondary);
     }
   </style>
+
+  <script>
+    const deleteCheckbox = document.getElementById('deleteFileCheckbox');
+    const fileInput = document.getElementById('fileInput');
+
+    if (deleteCheckbox && fileInput) {
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          deleteCheckbox.checked = false;
+        }
+      });
+
+      deleteCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+          fileInput.value = '';
+        }
+      });
+    }
+  </script>
 </head>
 </body>
 </html>

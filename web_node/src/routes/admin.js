@@ -41,7 +41,7 @@ router.get("/users", requireAdmin, async (req, res, next) => {
 router.post("/users/:id/update", requireAdmin, async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const { department, position, role } = req.body;
+    const { department, position, phone_number, role } = req.body;
 
     await db.query(
       `
@@ -49,7 +49,7 @@ router.post("/users/:id/update", requireAdmin, async (req, res, next) => {
       SET department = ?, position = ?, phone_number = ?, role = ?
       WHERE user_id = ?
       `,
-      [department || null, position || null, role, userId]
+      [department || null, position || null, phone_number || null, role, userId]
     );
 
     if (req.session.user && req.session.user.user_id == userId) {
