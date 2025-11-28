@@ -3,6 +3,22 @@
 <header class="nav">
   <div class="nav-left">
     <a href="/home" class="nav-logo">TeamDeskHub</a>
+    
+    <% if (isLoggedIn) { %>
+    <div id="online-count" style="
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 16px;
+      padding: 6px 12px;
+      background: #f3f4f6;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;">
+      <span id="online-number" style="color: #2563eb;">-</span>명 접속중
+    </div>
+    <% } %>
   </div>
 
   <nav class="nav-menu">
@@ -18,7 +34,65 @@
 
   <div class="nav-right">
     <% if (isLoggedIn) { %>
-      <!-- 🆕 상태 변경 드롭다운 -->
+      <div class="notification-dropdown">
+        <button class="notification-bell-btn" id="notification-bell-btn">
+          🔔
+          <% if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') { %>
+            <% const totalCount = (unreadCount || 0) + (newNoticeCount || 0) + (todayMeetingCount || 0); %>
+            <% if (totalCount > 0) { %>
+              <span class="notification-badge"><%= totalCount %></span>
+            <% } %>
+          <% } %>
+        </button>
+        
+        <div class="notification-menu" id="notification-menu">
+          <div class="notification-header">알림</div>
+          
+          <% if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') { %>
+            <% const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0) || (todayMeetingCount > 0); %>
+            
+            <% if (hasNotifications) { %>
+              <div class="notification-list">
+                <% if (unreadCount > 0) { %>
+                <a href="/chat" class="notification-item unread-msg">
+                  <div class="notification-content">
+                    <div class="notification-title">읽지 않은 메시지</div>
+                    <div class="notification-desc"><%= unreadCount %>개의 새 메시지</div>
+                  </div>
+                </a>
+                <% } %>
+                
+                <% if (newNoticeCount > 0) { %>
+                <a href="/board" class="notification-item new-notice">
+                  <div class="notification-content">
+                    <div class="notification-title">새 공지사항</div>
+                    <div class="notification-desc"><%= newNoticeCount %>개의 공지</div>
+                  </div>
+                </a>
+                <% } %>
+                
+                <% if (todayMeetingCount > 0) { %>
+                <a href="/meeting" class="notification-item meeting">
+                  <div class="notification-content">
+                    <div class="notification-title">오늘 회의실 예약</div>
+                    <div class="notification-desc"><%= todayMeetingCount %>건의 예약</div>
+                  </div>
+                </a>
+                <% } %>
+              </div>
+            <% } else { %>
+              <div class="notification-empty">
+                새로운 알림이 없습니다
+              </div>
+            <% } %>
+          <% } else { %>
+            <div class="notification-empty">
+              알림 정보를 불러올 수 없습니다
+            </div>
+          <% } %>
+        </div>
+      </div>
+
       <div class="status-dropdown">
         <button class="status-btn" id="status-btn">
           <span class="status-dot" id="status-dot"></span>
@@ -49,6 +123,145 @@
   </div>
 </header>
 
+<style>
+  .notification-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .notification-bell-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .notification-bell-btn:hover {
+    background: #f3f4f6;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ef4444;
+    color: white;
+    border-radius: 999px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .notification-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .notification-menu.show {
+    display: block;
+  }
+
+  .notification-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+  }
+
+  .notification-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notification-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #111827;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.2s;
+  }
+
+  .notification-item:last-child {
+    border-bottom: none;
+  }
+
+  .notification-item:hover {
+    background: #f9fafb;
+  }
+
+  .notification-item.unread-msg {
+    background: #eff6ff;
+  }
+
+  .notification-item.unread-msg:hover {
+    background: #dbeafe;
+  }
+
+  .notification-item.new-notice {
+    background: #fef3c7;
+  }
+
+  .notification-item.new-notice:hover {
+    background: #fde68a;
+  }
+
+  .notification-item.meeting {
+    background: #d1fae5;
+  }
+
+  .notification-item.meeting:hover {
+    background: #a7f3d0;
+  }
+
+  .notification-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .notification-content {
+    flex: 1;
+  }
+
+  .notification-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
+  }
+
+  .notification-desc {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .notification-empty {
+    padding: 40px 16px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+  }
+</style>
+
 <% if (isLoggedIn) { %>
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -74,10 +287,31 @@
     }
   }
 
-  // 페이지 로드 시 초기 상태 표시
   updateStatusDisplay(currentStatus);
 
-  // 드롭다운 토글
+  const numberEl = document.getElementById("online-number");
+  if (numberEl) {
+    socket.on("online count", (count) => {
+      numberEl.textContent = count;
+    });
+  }
+
+  const notificationBellBtn = document.getElementById('notification-bell-btn');
+  const notificationMenu = document.getElementById('notification-menu');
+
+  if (notificationBellBtn && notificationMenu) {
+    notificationBellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notificationMenu.classList.toggle('show');
+      const statusMenu = document.getElementById('status-menu');
+      if (statusMenu) statusMenu.classList.remove('show');
+    });
+
+    document.addEventListener('click', () => {
+      notificationMenu.classList.remove('show');
+    });
+  }
+
   const statusBtn = document.getElementById('status-btn');
   const statusMenu = document.getElementById('status-menu');
 
@@ -85,9 +319,9 @@
     statusBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       statusMenu.classList.toggle('show');
+      if (notificationMenu) notificationMenu.classList.remove('show');
     });
 
-    // 외부 클릭 시 닫기
     document.addEventListener('click', () => {
       statusMenu.classList.remove('show');
     });
@@ -100,7 +334,6 @@
         const newStatus = option.dataset.status;
         
         try {
-          // API 호출
           const response = await fetch('/api/status/change', {
             method: 'POST',
             headers: {
@@ -110,10 +343,8 @@
           });
 
           if (response.ok) {
-            // Socket.io로 실시간 전파
             socket.emit('status-change', { status: newStatus });
             
-            // UI 업데이트
             updateStatusDisplay(newStatus);
             statusMenu.classList.remove('show');
           }

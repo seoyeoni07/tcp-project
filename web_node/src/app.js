@@ -132,7 +132,6 @@ async function getRoomParticipants(roomId) {
   }
 }
 
-//새 채팅방 생성시 알림
 export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
   if (!io) return;
 
@@ -168,6 +167,8 @@ io.on("connection", (socket) => {
   socket.userId = userId;
   socket.userName = userName;
 
+   io.emit("online count", io.engine.clientsCount);
+
   let currentRoomId = 1;
 
   socket.emit("system message", `${userName}님, 채팅방에 오신 것을 환영합니다!`);
@@ -186,7 +187,6 @@ io.on("connection", (socket) => {
 
       const lastMessageId = messages.length > 0 ? messages[messages.length - 1].message_id : null;
       if (lastMessageId) {
-        // 방에 들어오면 읽음 처리
         await updateLastReadMessageId(userId, currentRoomId, lastMessageId);
       }
 
@@ -217,6 +217,26 @@ io.on("connection", (socket) => {
     }
   });
 
+  // 타이핑 시작
+  socket.on("typing start", (data) => {
+    if (!data.roomId) return;
+    socket.to(`room-${data.roomId}`).emit("user typing", {
+      userId: socket.userId,
+      userName: socket.userName,
+      roomId: data.roomId
+    });
+  });
+
+  // 타이핑 종료
+  socket.on("typing stop", (data) => {
+    if (!data.roomId) return;
+    socket.to(`room-${data.roomId}`).emit("user stop typing", {
+      userId: socket.userId,
+      userName: socket.userName,
+      roomId: data.roomId
+    });
+  });
+
   socket.on("chat message", async (payload) => {
 
     const isObject = typeof payload === "object" && payload !== null;
@@ -235,10 +255,7 @@ io.on("connection", (socket) => {
     try {
       newMessageId = await saveChatMessage(socket.userId, text, roomId);
       if (!newMessageId) return;
-
-      // 메시지 전송 직후 읽음 처리
       await updateLastReadMessageId(socket.userId, roomId, newMessageId);
-
     } catch (error) {
       console.error("메시지 DB 저장 오류:", error);
       socket.emit("system message", "메시지 저장 중 오류가 발생했습니다.");
@@ -254,10 +271,7 @@ io.on("connection", (socket) => {
       message_id: newMessageId,
     };
 
-    //메시지 보낸 방 전체에 메시지 전송 (현재 접속자)
     io.to(`room-${roomId}`).emit("chat message", messageData);
-
-    //메시지를 보낸 사용자 본인을 제외한 참여자에게 알림 전송
     const participantIds = await getRoomParticipants(roomId);
 
     io.fetchSockets().then(sockets => {
@@ -271,6 +285,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`${socket.userName} 연결이 끊어졌습니다.`);
+    io.emit("online count", io.engine.clientsCount);
   });
   socket.on("status-change", async (data) => {
     const { status } = data;
@@ -293,7 +308,6 @@ io.on("connection", (socket) => {
         socket.request.session.user.work_status = status;
       }
 
-      // 전체 팀원 상태 조회
       const [users] = await db.query(
         `SELECT 
           user_id, 

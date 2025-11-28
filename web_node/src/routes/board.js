@@ -9,16 +9,12 @@ const router = express.Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// 업로드 폴더: web_node/src/public/uploads
 const uploadDir = path.join(__dirname, "..", "public", "uploads");
 
-// 폴더 없으면 생성
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-//저장 방식 설정
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     cb(null, uploadDir);
@@ -31,7 +27,6 @@ const storage = multer.diskStorage({
   },
 });
 
-// 파일 다운로드
 router.get("/download/:id", async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -77,7 +72,6 @@ router.get("/download/:id", async (req, res, next) => {
 
 const upload = multer({ storage });
 
-// 로그인 여부
 function requireLogin(req, res, next) {
   if (!req.session.user) {
     return res.redirect("/");
@@ -277,7 +271,7 @@ router.get("/:id/edit", requireLogin, async (req, res, next) => {
   }
 });
 
-// 글 수정 처리 - 파일 삭제 체크박스 추가
+// 글 수정 처리
 router.post(
   "/:id/edit",
   requireLogin,
@@ -297,7 +291,6 @@ router.post(
         return res.status(400).send("제목과 내용을 입력하세요.");
       }
 
-      // 1. 기존 파일 정보 조회
       const [existingRows] = await db.query(
         "SELECT file_saved FROM boards WHERE post_id = ? AND (user_id = ? OR ? = 'admin')",
         [id, user.user_id, user.role]
@@ -310,24 +303,18 @@ router.post(
       const oldFileSaved = existingRows[0].file_saved;
       const isAdmin = user.role === "admin";
       const isNoticeValue = isAdmin && is_notice ? 1 : 0;
-
-      // 2. 새 파일 업로드 여부 확인
       const newFile = req.file;
-      
-      // 3. 파일 삭제 체크박스 확인
       const shouldDeleteFile = delete_file === "1";
 
       let updateQuery;
       let updateParams;
 
       if (newFile) {
-        // 케이스 1: 새 파일이 업로드된 경우
         const decoded = Buffer.from(newFile.originalname, "latin1").toString("utf8");
         const fileOriginal = decoded.normalize("NFC");
         const fileSaved = newFile.filename;
         const fileSize = newFile.size;
 
-        // 기존 파일 삭제
         if (oldFileSaved) {
           const oldFilePath = path.join(uploadDir, oldFileSaved);
           if (fs.existsSync(oldFilePath)) {
@@ -340,7 +327,6 @@ router.post(
           }
         }
 
-        // 새 파일 정보로 업데이트
         updateQuery = `
           UPDATE boards
           SET title = ?, content = ?, is_notice = ?, 
@@ -351,7 +337,6 @@ router.post(
         updateParams = [title, content, isNoticeValue, fileOriginal, fileSaved, fileSize, id, user.user_id, user.role];
         
       } else if (shouldDeleteFile && oldFileSaved) {
-        // 케이스 2: 파일 삭제만 하는 경우
         const oldFilePath = path.join(uploadDir, oldFileSaved);
         if (fs.existsSync(oldFilePath)) {
           try {
@@ -362,7 +347,6 @@ router.post(
           }
         }
 
-        // DB에서 파일 정보 제거
         updateQuery = `
           UPDATE boards
           SET title = ?, content = ?, is_notice = ?,
@@ -373,7 +357,6 @@ router.post(
         updateParams = [title, content, isNoticeValue, id, user.user_id, user.role];
         
       } else {
-        // 케이스 3: 파일 변경 없음
         updateQuery = `
           UPDATE boards
           SET title = ?, content = ?, is_notice = ?, updated_at = NOW()
@@ -395,7 +378,6 @@ router.post(
   }
 );
 
-// 글 삭제 - 파일도 함께 삭제
 router.post("/:id/delete", requireLogin, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -421,8 +403,6 @@ router.post("/:id/delete", requireLogin, async (req, res, next) => {
     }
 
     const fileSaved = fileRows[0].file_saved;
-
-    // 2. DB에서 삭제
     const [result] = await db.query(
       `
       DELETE FROM boards
@@ -435,7 +415,6 @@ router.post("/:id/delete", requireLogin, async (req, res, next) => {
       return res.status(403).send("삭제 권한이 없거나 글이 존재하지 않습니다.");
     }
 
-    // 3. 파일 시스템에서도 파일 삭제
     if (fileSaved) {
       const filePath = path.join(uploadDir, fileSaved);
       if (fs.existsSync(filePath)) {
@@ -461,11 +440,22 @@ router.get("/:id", requireLogin, async (req, res, next) => {
       return res.status(400).send("잘못된 요청입니다.");
     }
 
-    // 조회수 증가
     await db.query(
       "UPDATE boards SET view_count = view_count + 1 WHERE post_id = ?",
       [id]
     );
+
+     const userId = req.session.user.user_id;
+
+    await db.query(
+      `
+      INSERT INTO board_views (post_id, user_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE viewed_at = CURRENT_TIMESTAMP
+      `,
+      [id, userId]
+    );
+
 
     const [rows] = await db.query(
       `
