@@ -45,28 +45,6 @@ const sessionMiddleware = session({
   saveUninitialized: false,
 });
 app.use(sessionMiddleware);
-
-app.use(async (req, res, next) => {
-    if (req.session.user && req.session.user.user_id) {
-        try {
-            const [userResult] = await db.query(
-                `SELECT work_status, user_name, department, position, role FROM users WHERE user_id = ?`,
-                [req.session.user.user_id]
-            );
-            if (userResult.length > 0) {
-                req.session.user = { 
-                    ...req.session.user, 
-                    ...userResult[0] 
-                };
-                req.session.save(); 
-            }
-        } catch (error) {
-            console.error("전역 세션 상태 갱신 오류:", error);
-        }
-    }
-    next();
-});
-
 function requireLogin(req, res, next) {
   if (!req.session.user) {
     return res.redirect("/");

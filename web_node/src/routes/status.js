@@ -13,7 +13,7 @@ function requireLogin(req, res, next) {
 // 전체 팀원 상태 조회
 router.get("/", requireLogin, async (req, res) => {
   try {
-    const { department } = req.query;
+    const { department } = req.query; 
     const currentUser = req.session.user;
 
     let query = `
@@ -70,9 +70,9 @@ router.get("/departments", requireLogin, async (req, res) => {
        ORDER BY department`
     );
 
-    res.json({
+    res.json({ 
       departments: departments.map(d => d.department),
-      myDepartment: req.session.user.department
+      myDepartment: req.session.user.department 
     });
   } catch (error) {
     console.error("부서 목록 조회 오류:", error);
@@ -91,41 +91,34 @@ router.post("/change", requireLogin, async (req, res) => {
 
   try {
     await db.query(
-      `UPDATE users
-    SET work_status = ?,
-    status_updated_at = NOW()
-    WHERE user_id = ?`,
+      `UPDATE users 
+       SET work_status = ?, 
+           status_updated_at = NOW() 
+       WHERE user_id = ?`,
       [status, userId]
     );
 
     req.session.user.work_status = status;
 
-    req.session.save(async (err) => {
-      if (err) {
-        console.error("세션 저장 오류:", err);
-        return res.status(500).json({ error: "상태 변경 실패 (세션)" });
-      }
-
-      // 변경된 사용자 정보 조회
-      const [users] = await db.query(
-        `SELECT
-        user_id,
-        user_name,
-        department,
-        position,
+    // 변경된 사용자 정보 조회
+    const [users] = await db.query(
+      `SELECT 
+        user_id, 
+        user_name, 
+        department, 
+        position, 
         work_status,
         status_updated_at
-      FROM users
+      FROM users 
       WHERE user_id = ?`,
-        [userId]
-      );
+      [userId]
+    );
 
-      res.json({ success: true, user: users[0] });
-    });
-    } catch (error) {
-      console.error("상태 변경 오류:", error);
-      res.status(500).json({ error: "상태 변경 실패" });
-    }
-  });
+    res.json({ success: true, user: users[0] });
+  } catch (error) {
+    console.error("상태 변경 오류:", error);
+    res.status(500).json({ error: "상태 변경 실패" });
+  }
+});
 
 export default router;
