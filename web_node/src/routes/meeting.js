@@ -27,6 +27,7 @@
     const user = req.session.user;
 
     const today = new Date();
+    req.session.meetingPageVisitDate = today.toISOString().split('T')[0];
     let year = parseInt(req.query.year || today.getFullYear(), 10);
     let month = parseInt(req.query.month || (today.getMonth() + 1), 10);
 

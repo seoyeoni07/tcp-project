@@ -3,7 +3,7 @@ import db from "../config/db.js";
 
 const router = express.Router();
 
-// 로그인 페이지
+// 로그인
 router.get("/", (req, res) => {
   res.render("login", {
     title: "로그인",
@@ -22,7 +22,7 @@ router.get("/signup", (req, res) => {
   });
 });
 
-// 회원가입 페이지
+// 회원가입
 router.post("/signup", async (req, res, next) => {
   try {
     const { username, email, password, department, position, phone_number } = req.body;
@@ -74,9 +74,8 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    // 사용자 조회
     const [rows] = await db.query(
-      "SELECT user_id, user_name, email, password, role, department, position, phone_number FROM users WHERE email = ?",
+      "SELECT user_id, user_name, email, password, role, department, position, phone_number, work_status FROM users WHERE email = ?",
       [email]
     );
 
@@ -108,7 +107,10 @@ router.post("/login", async (req, res, next) => {
       department: userRow.department,
       position: userRow.position,
       phone_number: userRow.phone_number,
+      work_status: userRow.work_status || 'offline',
     };
+
+    console.log('로그인 세션 저장:', req.session.user);
 
     res.redirect("/home");
   } catch (err) {
