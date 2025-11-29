@@ -190,6 +190,7 @@ async function calculateTotalUnreadCount(userId) {
   }
 }
 
+
 export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
   if (!io) return;
 
@@ -206,6 +207,27 @@ export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
     });
   }).catch(err => {
     console.error("New room notification error:", err);
+  });
+}
+
+export function notifyNewNotice(postId, title, userId) {
+  if (!io) return;
+
+  io.fetchSockets().then(sockets => {
+    sockets.forEach(async s => {
+      // 새 글 작성자 자신에게는 알림을 보내지 않음 (선택 사항)
+      if (s.userId && s.userId !== userId) {
+        const counts = await calculateTotalUnreadCount(s.userId);
+        s.emit('update total count', counts);
+        
+        s.emit('new notice notification', { 
+            post_id: postId, 
+            title: title 
+        });
+      }
+    });
+  }).catch(err => {
+    console.error("New notice notification error:", err);
   });
 }
 
@@ -345,14 +367,11 @@ io.on("connection", (socket) => {
         if (participantIds.includes(s.userId) && s.userId !== socket.userId) {
           
           if (s.currentRoomId === roomId) {
-            // 새 메시지가 왔는데, 수신자가 현재 그 방을 보고 있다면 즉시 읽음 처리
             await updateLastReadMessageId(s.userId, roomId, newMessageId);
           } else {
-            // 방을 보고 있지 않다면 알림을 보냄 (새 메시지 왔다고 클라이언트가 UI에 표시할 수 있음)
             s.emit("new message notification", messageData);
           }
           
-          // 카운트를 계산하여 전송 (읽음 처리를 했다면 카운트가 올라가지 않음)
           const counts = await calculateTotalUnreadCount(s.userId);
           s.emit('update total count', counts);
         }

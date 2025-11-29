@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { notifyNewNotice } from "../app.js"; // app.js에서 함수 임포트
 
 const router = express.Router();
 
@@ -190,7 +191,7 @@ router.post(
 
       if (file) {
         const decoded = Buffer.from(file.originalname, "latin1").toString("utf8");
-        fileOriginal = decoded.normalize("NFC");  // 맥/윈도우 한글 조합 통일
+        fileOriginal = decoded.normalize("NFC");
         fileSaved = file.filename;
         fileSize = file.size;
       }
@@ -213,6 +214,12 @@ router.post(
       );
 
       const newId = result.insertId;
+
+      // 새 공지 등록 시 실시간 알림 전송 로직 추가
+      if (isNoticeValue === 1) {
+          notifyNewNotice(newId, title, user.user_id); 
+      }
+      
       return res.redirect(`/board/${newId}`);
     } catch (err) {
       next(err);
@@ -292,15 +299,17 @@ router.post(
       }
 
       const [existingRows] = await db.query(
-        "SELECT file_saved FROM boards WHERE post_id = ? AND (user_id = ? OR ? = 'admin')",
+        "SELECT user_id, is_notice, file_saved FROM boards WHERE post_id = ? AND (user_id = ? OR ? = 'admin')",
         [id, user.user_id, user.role]
       );
 
       if (existingRows.length === 0) {
         return res.status(403).send("수정 권한이 없거나 글이 존재하지 않습니다.");
       }
-
+      
+      const oldIsNotice = existingRows[0].is_notice; // 기존 공지 상태
       const oldFileSaved = existingRows[0].file_saved;
+      
       const isAdmin = user.role === "admin";
       const isNoticeValue = isAdmin && is_notice ? 1 : 0;
       const newFile = req.file;
@@ -370,7 +379,15 @@ router.post(
       if (result.affectedRows === 0) {
         return res.status(403).send("수정 권한이 없거나 글이 존재하지 않습니다.");
       }
-
+      
+      // 공지사항으로 변경되었거나 공지사항 상태를 유지하는 경우 알림 전송
+      if (isNoticeValue === 1 && oldIsNotice === 0) {
+          notifyNewNotice(id, title, user.user_id);
+      } else if (isNoticeValue === 1 && oldIsNotice === 1) {
+          // 공지 내용 수정 시에도 알림 갱신 (선택 사항: 알림을 띄우진 않으나 카운트는 갱신)
+          notifyNewNotice(id, title, user.user_id);
+      }
+      
       return res.redirect(`/board/${id}`);
     } catch (err) {
       next(err);

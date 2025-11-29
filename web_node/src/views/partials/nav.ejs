@@ -298,6 +298,10 @@
   const totalNotificationBadge = document.querySelector('.notification-badge'); 
   const notificationMenu = document.getElementById('notification-menu');
 
+  /**
+   * 알림 드롭다운 메뉴 내용을 갱신합니다.
+   * @param {object} counts - { unreadCount, newNoticeCount, todayMeetingCount, ... }
+   */
   function updateNotificationMenu(counts) {
     const { unreadCount, newNoticeCount, todayMeetingCount } = counts;
     const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0) || (todayMeetingCount > 0);
@@ -350,6 +354,21 @@
     notificationMenu.innerHTML = contentHTML;
   }
   
+
+  socket.on('new notice notification', (data) => {
+      console.log(`[새 공지 알림 수신] 제목: ${data.title}, ID: ${data.post_id}`);
+  });
+
+  socket.on('new message notification', (messageData) => {
+      console.log(`[새 채팅 메시지 알림] ${messageData.user_name}: ${messageData.message}`);
+
+  });
+
+  socket.on('new room created', (roomInfo) => {
+      console.log(`[새 채팅방 생성] 이름: ${roomInfo.room_name}`);
+
+  });
+
   socket.on('update total count', (data) => {
     if (typeof data.totalCount === 'undefined') return;
 
