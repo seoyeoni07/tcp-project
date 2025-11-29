@@ -132,6 +132,64 @@ async function getRoomParticipants(roomId) {
   }
 }
 
+async function calculateTotalUnreadCount(userId) {
+  if (!userId) return { unreadCount: 0, newNoticeCount: 0, todayMeetingCount: 0, totalCount: 0 };
+
+  try {
+    const [[unreadMessages]] = await db.query(
+      `
+      SELECT COUNT(*) AS unread_count
+      FROM messages m
+      JOIN chat_participants cp ON cp.room_id = m.room_id AND cp.user_id = ?
+      WHERE m.user_id != ?
+        AND (cp.last_read_message_id IS NULL OR m.message_id > cp.last_read_message_id)
+      `,
+      [userId, userId]
+    );
+
+    const [[newNotices]] = await db.query(
+      `
+      SELECT COUNT(*) AS new_notice_count
+      FROM boards b
+      WHERE b.is_notice = 1
+        AND b.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        AND NOT EXISTS (
+          SELECT 1 FROM board_views bv
+          WHERE bv.post_id = b.post_id
+            AND bv.user_id = ?
+        )
+      `,
+      [userId]
+    );
+
+    const [[todayMeetings]] = await db.query(
+      `
+      SELECT COUNT(*) AS today_meeting_count
+      FROM meeting_reservations
+      WHERE user_id = ?
+        AND DATE(start_time) = CURDATE()
+      `,
+      [userId]
+    );
+
+    const chatCount = unreadMessages.unread_count || 0;
+    const noticeCount = newNotices.new_notice_count || 0;
+    const meetingCount = todayMeetings.today_meeting_count || 0;
+    const totalCount = chatCount + noticeCount + meetingCount;
+
+    return { 
+      unreadCount: chatCount, 
+      newNoticeCount: noticeCount, 
+      todayMeetingCount: meetingCount, 
+      totalCount: totalCount 
+    };
+
+  } catch (error) {
+    console.error("전체 알림 카운트 계산 오류:", error);
+    return { unreadCount: 0, newNoticeCount: 0, todayMeetingCount: 0, totalCount: 0 };
+  }
+}
+
 export function notifyNewRoom(newRoomId, participantIds, roomInfo) {
   if (!io) return;
 
@@ -166,28 +224,30 @@ io.on("connection", (socket) => {
 
   socket.userId = userId;
   socket.userName = userName;
+  socket.currentRoomId = 1;
 
    io.emit("online count", io.engine.clientsCount);
-
-  let currentRoomId = 1;
 
   socket.emit("system message", `${userName}님, 채팅방에 오신 것을 환영합니다!`);
 
   socket.on("join room", async (roomId) => {
     if (!roomId) return;
 
-    socket.leave(`room-${currentRoomId}`);
-    currentRoomId = Number(roomId) || 1;
-    socket.join(`room-${currentRoomId}`);
+    socket.leave(`room-${socket.currentRoomId}`);
+    socket.currentRoomId = Number(roomId) || 1;
+    socket.join(`room-${socket.currentRoomId}`);
 
     try {
       socket.emit("clear messages");
 
-      const messages = await getPastMessages(currentRoomId);
+      const messages = await getPastMessages(socket.currentRoomId);
 
       const lastMessageId = messages.length > 0 ? messages[messages.length - 1].message_id : null;
       if (lastMessageId) {
-        await updateLastReadMessageId(userId, currentRoomId, lastMessageId);
+        await updateLastReadMessageId(userId, socket.currentRoomId, lastMessageId);
+        
+        const counts = await calculateTotalUnreadCount(socket.userId);
+        socket.emit('update total count', counts);
       }
 
       messages.forEach((msg) => {
@@ -196,14 +256,14 @@ io.on("connection", (socket) => {
           user_name: msg.user_name,
           message: msg.content,
           timestamp: new Date(msg.created_at).toLocaleTimeString(),
-          room_id: currentRoomId,
+          room_id: socket.currentRoomId,
           message_id: msg.message_id,
         });
       });
 
       socket.emit(
         "system message",
-        `채팅 내역 로딩 완료.(방 ${currentRoomId})`
+        `채팅 내역 로딩 완료.(방 ${socket.currentRoomId})`
       );
     } catch (err) {
       console.error("과거 메시지 전송 실패:", err);
@@ -212,12 +272,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("read message", (messageId) => {
-    if (messageId && currentRoomId) {
-      updateLastReadMessageId(userId, currentRoomId, Number(messageId));
+    if (messageId && socket.currentRoomId) {
+      updateLastReadMessageId(userId, socket.currentRoomId, Number(messageId));
     }
   });
 
-  // 타이핑 시작
+  socket.on("read room messages", async (roomId) => {
+    if (!roomId) return;
+
+    const counts = await calculateTotalUnreadCount(socket.userId);
+    socket.emit('update total count', counts);
+    socket.emit('read all messages in room done');
+  });
+
   socket.on("typing start", (data) => {
     if (!data.roomId) return;
     socket.to(`room-${data.roomId}`).emit("user typing", {
@@ -227,7 +294,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // 타이핑 종료
   socket.on("typing stop", (data) => {
     if (!data.roomId) return;
     socket.to(`room-${data.roomId}`).emit("user stop typing", {
@@ -245,7 +311,7 @@ io.on("connection", (socket) => {
       : String(payload || "").trim();
 
     const roomIdFromClient = isObject ? Number(payload.room_id) : NaN;
-    const roomId = roomIdFromClient || currentRoomId;
+    const roomId = roomIdFromClient || socket.currentRoomId;
 
     if (!text) {
       return;
@@ -274,19 +340,50 @@ io.on("connection", (socket) => {
     io.to(`room-${roomId}`).emit("chat message", messageData);
     const participantIds = await getRoomParticipants(roomId);
 
-    io.fetchSockets().then(sockets => {
-      sockets.forEach(s => {
+    io.fetchSockets().then(async sockets => {
+      sockets.forEach(async s => {
         if (participantIds.includes(s.userId) && s.userId !== socket.userId) {
-          s.emit("new message notification", messageData);
+          
+          if (s.currentRoomId === roomId) {
+            // 새 메시지가 왔는데, 수신자가 현재 그 방을 보고 있다면 즉시 읽음 처리
+            await updateLastReadMessageId(s.userId, roomId, newMessageId);
+          } else {
+            // 방을 보고 있지 않다면 알림을 보냄 (새 메시지 왔다고 클라이언트가 UI에 표시할 수 있음)
+            s.emit("new message notification", messageData);
+          }
+          
+          // 카운트를 계산하여 전송 (읽음 처리를 했다면 카운트가 올라가지 않음)
+          const counts = await calculateTotalUnreadCount(s.userId);
+          s.emit('update total count', counts);
         }
       });
+      
+      const myCounts = await calculateTotalUnreadCount(socket.userId);
+      socket.emit('update total count', myCounts);
     });
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     console.log(`${socket.userName} 연결이 끊어졌습니다.`);
     io.emit("online count", io.engine.clientsCount);
+    
+    try {
+      const [users] = await db.query(
+        `SELECT 
+          user_id, 
+          user_name, 
+          department, 
+          position, 
+          work_status,
+          status_updated_at
+        FROM users`
+      );
+      io.emit("status-updated", { users });
+    } catch (error) {
+      console.error("DB 조회 오류:", error);
+    }
   });
+
   socket.on("status-change", async (data) => {
     const { status } = data;
     const validStatuses = ["online", "meeting", "out", "offline"];

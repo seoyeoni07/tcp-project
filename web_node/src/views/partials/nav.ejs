@@ -37,57 +37,57 @@
       <div class="notification-dropdown">
         <button class="notification-bell-btn" id="notification-bell-btn">
           🔔
-          <% if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') { %>
-            <% const totalCount = (unreadCount || 0) + (newNoticeCount || 0) + (todayMeetingCount || 0); %>
-            <% if (totalCount > 0) { %>
-              <span class="notification-badge"><%= totalCount %></span>
-            <% } %>
-          <% } %>
+          <%
+          let initialTotalCount = 0;
+          let initialUnreadCount = 0;
+          let initialNewNoticeCount = 0;
+          let initialTodayMeetingCount = 0;
+          if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') {
+            initialUnreadCount = unreadCount || 0;
+            initialNewNoticeCount = newNoticeCount || 0;
+            initialTodayMeetingCount = todayMeetingCount || 0;
+            initialTotalCount = initialUnreadCount + initialNewNoticeCount + initialTodayMeetingCount;
+          } %>
+          <span class="notification-badge" style="<%= initialTotalCount > 0 ? '' : 'display:none;' %>">
+            <%= initialTotalCount > 0 ? initialTotalCount : '' %>
+          </span>
         </button>
         
         <div class="notification-menu" id="notification-menu">
           <div class="notification-header">알림</div>
           
-          <% if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') { %>
-            <% const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0) || (todayMeetingCount > 0); %>
-            
-            <% if (hasNotifications) { %>
-              <div class="notification-list">
-                <% if (unreadCount > 0) { %>
-                <a href="/chat" class="notification-item unread-msg">
-                  <div class="notification-content">
-                    <div class="notification-title">읽지 않은 메시지</div>
-                    <div class="notification-desc"><%= unreadCount %>개의 새 메시지</div>
-                  </div>
-                </a>
-                <% } %>
-                
-                <% if (newNoticeCount > 0) { %>
-                <a href="/board" class="notification-item new-notice">
-                  <div class="notification-content">
-                    <div class="notification-title">새 공지사항</div>
-                    <div class="notification-desc"><%= newNoticeCount %>개의 공지</div>
-                  </div>
-                </a>
-                <% } %>
-                
-                <% if (todayMeetingCount > 0) { %>
-                <a href="/meeting" class="notification-item meeting">
-                  <div class="notification-content">
-                    <div class="notification-title">오늘 회의실 예약</div>
-                    <div class="notification-desc"><%= todayMeetingCount %>건의 예약</div>
-                  </div>
-                </a>
-                <% } %>
-              </div>
-            <% } else { %>
-              <div class="notification-empty">
-                새로운 알림이 없습니다
-              </div>
-            <% } %>
+          <% if (initialUnreadCount > 0 || initialNewNoticeCount > 0 || initialTodayMeetingCount > 0) { %>
+            <div class="notification-list">
+              <% if (initialUnreadCount > 0) { %>
+              <a href="/chat" class="notification-item unread-msg">
+                <div class="notification-content">
+                  <div class="notification-title">읽지 않은 메시지</div>
+                  <div class="notification-desc"><%= initialUnreadCount %>개의 새 메시지</div>
+                </div>
+              </a>
+              <% } %>
+              
+              <% if (initialNewNoticeCount > 0) { %>
+              <a href="/board" class="notification-item new-notice">
+                <div class="notification-content">
+                  <div class="notification-title">새 공지사항</div>
+                  <div class="notification-desc"><%= initialNewNoticeCount %>개의 공지</div>
+                </div>
+              </a>
+              <% } %>
+              
+              <% if (initialTodayMeetingCount > 0) { %>
+              <a href="/meeting" class="notification-item meeting">
+                <div class="notification-content">
+                  <div class="notification-title">오늘 회의실 예약</div>
+                  <div class="notification-desc"><%= initialTodayMeetingCount %>건의 예약</div>
+                </div>
+              </a>
+              <% } %>
+            </div>
           <% } else { %>
-            <div class="notification-empty">
-              알림 정보를 불러올 수 없습니다
+            <div class="notification-empty" id="notification-empty">
+              새로운 알림이 없습니다
             </div>
           <% } %>
         </div>
@@ -276,7 +276,6 @@
 
   const currentStatus = '<%= user.work_status || "offline" %>';
   
-  // 초기 상태 표시
   function updateStatusDisplay(status) {
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
@@ -295,9 +294,83 @@
       numberEl.textContent = count;
     });
   }
+  
+  const totalNotificationBadge = document.querySelector('.notification-badge'); 
+  const notificationMenu = document.getElementById('notification-menu');
+
+  function updateNotificationMenu(counts) {
+    const { unreadCount, newNoticeCount, todayMeetingCount } = counts;
+    const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0) || (todayMeetingCount > 0);
+    
+    if (!notificationMenu) return;
+
+    let contentHTML = '<div class="notification-header">알림</div>';
+    
+    if (hasNotifications) {
+      contentHTML += '<div class="notification-list">';
+      
+      if (unreadCount > 0) {
+        contentHTML += `
+          <a href="/chat" class="notification-item unread-msg">
+            <div class="notification-content">
+              <div class="notification-title">읽지 않은 메시지</div>
+              <div class="notification-desc">${unreadCount}개의 새 메시지</div>
+            </div>
+          </a>
+        `;
+      }
+      
+      if (newNoticeCount > 0) {
+        contentHTML += `
+          <a href="/board" class="notification-item new-notice">
+            <div class="notification-content">
+              <div class="notification-title">새 공지사항</div>
+              <div class="notification-desc">${newNoticeCount}개의 공지</div>
+            </div>
+          </a>
+        `;
+      }
+      
+      if (todayMeetingCount > 0) {
+        contentHTML += `
+          <a href="/meeting" class="notification-item meeting">
+            <div class="notification-content">
+              <div class="notification-title">오늘 회의실 예약</div>
+              <div class="notification-desc">${todayMeetingCount}건의 예약</div>
+            </div>
+          </a>
+        `;
+      }
+
+      contentHTML += '</div>';
+    } else {
+      contentHTML += '<div class="notification-empty">새로운 알림이 없습니다</div>';
+    }
+
+    notificationMenu.innerHTML = contentHTML;
+  }
+  
+  socket.on('update total count', (data) => {
+    if (typeof data.totalCount === 'undefined') return;
+
+    const newTotal = Number(data.totalCount);
+
+    if (totalNotificationBadge) {
+        if (newTotal > 0) {
+          totalNotificationBadge.textContent = newTotal;
+          totalNotificationBadge.style.display = 'inline-block';
+        } else {
+          totalNotificationBadge.style.display = 'none';
+          totalNotificationBadge.textContent = '';
+        }
+    }
+    
+    if (data.unreadCount !== undefined) {
+      updateNotificationMenu(data);
+    }
+  });
 
   const notificationBellBtn = document.getElementById('notification-bell-btn');
-  const notificationMenu = document.getElementById('notification-menu');
 
   if (notificationBellBtn && notificationMenu) {
     notificationBellBtn.addEventListener('click', (e) => {
@@ -326,7 +399,6 @@
       statusMenu.classList.remove('show');
     });
 
-    // 상태 변경
     const statusOptions = document.querySelectorAll('.status-option');
     statusOptions.forEach(option => {
       option.addEventListener('click', async (e) => {
@@ -349,8 +421,6 @@
             statusMenu.classList.remove('show');
           }
         } catch (error) {
-          console.error('상태 변경 오류:', error);
-          alert('상태 변경에 실패했습니다.');
         }
       });
     });
