@@ -41,12 +41,10 @@
           let initialTotalCount = 0;
           let initialUnreadCount = 0;
           let initialNewNoticeCount = 0;
-          let initialTodayMeetingCount = 0;
-          if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined' && typeof todayMeetingCount !== 'undefined') {
+          if (typeof unreadCount !== 'undefined' && typeof newNoticeCount !== 'undefined') {
             initialUnreadCount = unreadCount || 0;
             initialNewNoticeCount = newNoticeCount || 0;
-            initialTodayMeetingCount = todayMeetingCount || 0;
-            initialTotalCount = initialUnreadCount + initialNewNoticeCount + initialTodayMeetingCount;
+            initialTotalCount = initialUnreadCount + initialNewNoticeCount;
           } %>
           <span class="notification-badge" style="<%= initialTotalCount > 0 ? '' : 'display:none;' %>">
             <%= initialTotalCount > 0 ? initialTotalCount : '' %>
@@ -56,7 +54,7 @@
         <div class="notification-menu" id="notification-menu">
           <div class="notification-header">알림</div>
           
-          <% if (initialUnreadCount > 0 || initialNewNoticeCount > 0 || initialTodayMeetingCount > 0) { %>
+          <% if (initialUnreadCount > 0 || initialNewNoticeCount > 0) { %>
             <div class="notification-list">
               <% if (initialUnreadCount > 0) { %>
               <a href="/chat" class="notification-item unread-msg">
@@ -72,15 +70,6 @@
                 <div class="notification-content">
                   <div class="notification-title">새 공지사항</div>
                   <div class="notification-desc"><%= initialNewNoticeCount %>개의 공지</div>
-                </div>
-              </a>
-              <% } %>
-              
-              <% if (initialTodayMeetingCount > 0) { %>
-              <a href="/meeting" class="notification-item meeting">
-                <div class="notification-content">
-                  <div class="notification-title">오늘 회의실 예약</div>
-                  <div class="notification-desc"><%= initialTodayMeetingCount %>건의 예약</div>
                 </div>
               </a>
               <% } %>
@@ -128,7 +117,6 @@
     position: relative;
     display: inline-block;
   }
-
   .notification-bell-btn {
     position: relative;
     background: transparent;
@@ -139,11 +127,9 @@
     border-radius: 50%;
     transition: background 0.2s;
   }
-
   .notification-bell-btn:hover {
     background: #f3f4f6;
   }
-
   .notification-badge {
     position: absolute;
     top: 2px;
@@ -157,7 +143,6 @@
     min-width: 18px;
     text-align: center;
   }
-
   .notification-menu {
     position: absolute;
     top: calc(100% + 8px);
@@ -172,11 +157,9 @@
     max-height: 400px;
     overflow-y: auto;
   }
-
   .notification-menu.show {
     display: block;
   }
-
   .notification-header {
     padding: 12px 16px;
     font-weight: 700;
@@ -184,12 +167,10 @@
     border-bottom: 1px solid #e5e7eb;
     color: #111827;
   }
-
   .notification-list {
     display: flex;
     flex-direction: column;
   }
-
   .notification-item {
     display: flex;
     align-items: center;
@@ -200,60 +181,37 @@
     border-bottom: 1px solid #f3f4f6;
     transition: background 0.2s;
   }
-
   .notification-item:last-child {
     border-bottom: none;
   }
-
   .notification-item:hover {
     background: #f9fafb;
   }
-
   .notification-item.unread-msg {
     background: #eff6ff;
   }
-
   .notification-item.unread-msg:hover {
     background: #dbeafe;
   }
-
   .notification-item.new-notice {
     background: #fef3c7;
   }
-
   .notification-item.new-notice:hover {
     background: #fde68a;
   }
-
-  .notification-item.meeting {
-    background: #d1fae5;
-  }
-
-  .notification-item.meeting:hover {
-    background: #a7f3d0;
-  }
-
-  .notification-icon {
-    font-size: 24px;
-    flex-shrink: 0;
-  }
-
   .notification-content {
     flex: 1;
   }
-
   .notification-title {
     font-size: 14px;
     font-weight: 600;
     color: #111827;
     margin-bottom: 2px;
   }
-
   .notification-desc {
     font-size: 12px;
     color: #6b7280;
   }
-
   .notification-empty {
     padding: 40px 16px;
     text-align: center;
@@ -279,7 +237,6 @@
   function updateStatusDisplay(status) {
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
-    
     if (statusDot && statusText) {
       statusDot.className = 'status-dot ' + status;
       statusText.textContent = statusLabels[status] || '알 수 없음';
@@ -298,14 +255,10 @@
   const totalNotificationBadge = document.querySelector('.notification-badge'); 
   const notificationMenu = document.getElementById('notification-menu');
 
-  /**
-   * 알림 드롭다운 메뉴 내용을 갱신합니다.
-   * @param {object} counts - { unreadCount, newNoticeCount, todayMeetingCount, ... }
-   */
   function updateNotificationMenu(counts) {
-    const { unreadCount, newNoticeCount, todayMeetingCount } = counts;
-    const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0) || (todayMeetingCount > 0);
-    
+    const { unreadCount, newNoticeCount } = counts;
+    const hasNotifications = (unreadCount > 0) || (newNoticeCount > 0);
+
     if (!notificationMenu) return;
 
     let contentHTML = '<div class="notification-header">알림</div>';
@@ -334,17 +287,6 @@
           </a>
         `;
       }
-      
-      if (todayMeetingCount > 0) {
-        contentHTML += `
-          <a href="/meeting" class="notification-item meeting">
-            <div class="notification-content">
-              <div class="notification-title">오늘 회의실 예약</div>
-              <div class="notification-desc">${todayMeetingCount}건의 예약</div>
-            </div>
-          </a>
-        `;
-      }
 
       contentHTML += '</div>';
     } else {
@@ -354,20 +296,11 @@
     notificationMenu.innerHTML = contentHTML;
   }
   
+  socket.on('new notice notification', (data) => {});
 
-  socket.on('new notice notification', (data) => {
-      console.log(`[새 공지 알림 수신] 제목: ${data.title}, ID: ${data.post_id}`);
-  });
+  socket.on('new message notification', (messageData) => {});
 
-  socket.on('new message notification', (messageData) => {
-      console.log(`[새 채팅 메시지 알림] ${messageData.user_name}: ${messageData.message}`);
-
-  });
-
-  socket.on('new room created', (roomInfo) => {
-      console.log(`[새 채팅방 생성] 이름: ${roomInfo.room_name}`);
-
-  });
+  socket.on('new room created', (roomInfo) => {});
 
   socket.on('update total count', (data) => {
     if (typeof data.totalCount === 'undefined') return;
@@ -375,16 +308,16 @@
     const newTotal = Number(data.totalCount);
 
     if (totalNotificationBadge) {
-        if (newTotal > 0) {
-          totalNotificationBadge.textContent = newTotal;
-          totalNotificationBadge.style.display = 'inline-block';
-        } else {
-          totalNotificationBadge.style.display = 'none';
-          totalNotificationBadge.textContent = '';
-        }
+      if (newTotal > 0) {
+        totalNotificationBadge.textContent = newTotal;
+        totalNotificationBadge.style.display = 'inline-block';
+      } else {
+        totalNotificationBadge.style.display = 'none';
+        totalNotificationBadge.textContent = '';
+      }
     }
     
-    if (data.unreadCount !== undefined) {
+    if (data.unreadCount !== undefined || data.newNoticeCount !== undefined) {
       updateNotificationMenu(data);
     }
   });
@@ -435,12 +368,10 @@
 
           if (response.ok) {
             socket.emit('status-change', { status: newStatus });
-            
             updateStatusDisplay(newStatus);
             statusMenu.classList.remove('show');
           }
-        } catch (error) {
-        }
+        } catch (error) {}
       });
     });
   }
